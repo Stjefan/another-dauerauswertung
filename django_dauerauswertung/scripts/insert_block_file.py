@@ -10,6 +10,8 @@ import re
 import sys
 import pandas as pd
 
+
+ts_connection_string = "dbname=tsdb user=postgres password=password host=localhost port=5432"
 rename_dict_mete = {
     "Temperatur": "temperature",
     "Druck": "pressure",
@@ -113,34 +115,87 @@ def read_terz_file(filepath: str):
     df.set_index("Date/Time", inplace=True)
     return df
 
-def insert_resu(df):
+
+def insert_mete(df, messpunkt_id: int):
+    
+    cols = ['time', 'messpunkt_id'] + ["rain",
+    "temperature",
+    "windspeed",
+    "pressure",
+    "humidity",
+    "winddirection"]
+
+    records = []
+    df_no_index = df.reset_index()
+    df_no_index.insert(1, "messpunkt_id", messpunkt_id)
+    records = df_no_index.to_numpy()
+    print(records)
+    # records = [(datetime.now(), 1, 20.0, 25.0, 21.0)]
+    conn = psycopg2.connect(ts_connection_string)
+    mgr = CopyManager(conn, 'tsdb_mete', cols)
+    mgr.copy(records)
+    conn.commit()
+
+def insert_terz(df, messpunkt_id: int):
+    frequencies = ['hz20', 'hz25', 'hz31_5', 'hz40', 'hz50', 'hz63', 'hz80', 'hz100', 'hz125', 'hz160', 'hz200', 'hz250',
+                            'hz315', 'hz400', 'hz500', 'hz630', 'hz800', 'hz1000', 'hz1250', 'hz1600', 'hz2000', 'hz2500', 'hz3150',
+                            'hz4000',
+                            'hz5000',
+                            'hz6300',
+                            'hz8000',
+                            'hz10000',
+                            'hz12500',
+                            'hz16000',
+                            'hz20000']
+    cols = ['time', 'messpunkt_id'] + frequencies
+
+    records = []
+    df_no_index = df.reset_index()
+    df_no_index.insert(1, "messpunkt_id", messpunkt_id)
+    records = df_no_index.to_numpy()
+    print(records)
+    # records = [(datetime.now(), 1, 20.0, 25.0, 21.0)]
+    conn = psycopg2.connect(ts_connection_string)
+    mgr = CopyManager(conn, 'tsdb_terz', cols)
+    mgr.copy(records)
+    conn.commit()
+
+def insert_resu(df, messpunkt_id: int):
     cols = ['time', 'messpunkt_id', 'lafeq', 'lafmax', 'lcfeq']
 
-    records = df.to_records()
-    conn = psycopg2.connect("dbname=tsdb user=postgres password=password host=localhost port=5432")
+    records = []
+    df_no_index = df.reset_index()
+    df_no_index.insert(1, "messpunkt_id", messpunkt_id)
+    records = df_no_index.to_numpy()
+    # print(records)
+    # records = [(df.index[0], 1, 20.0, 25.0, 21.0)]
+    conn = psycopg2.connect(ts_connection_string)
     mgr = CopyManager(conn, 'tsdb_resu', cols)
     mgr.copy(records)
-
-# don't forget to commit!
     conn.commit()
+
+def delete_duplicates(messpunkt_id: int, time_from: datetime, time_to: datetime, table: str):
+    conn = psycopg2.connect(ts_connection_string)
+    cursor = conn.cursor()
+
+    q = f"DELETE FROM {table} WHERE time >= '{time_from}' AND time <= '{time_to}' and messpunkt_id = {messpunkt_id}"
+    cursor.execute(q)
+    conn.commit()
+    conn.close()
 
 def push_blocks_2_database(project_name, mp_id: int, name_messpunkt, folder_name, zeitpunkt_str):
 
     df_mete = read_mete_file(f"{folder_name}{mp_id:05}_METE_{zeitpunkt_str}.csv")
     df_resu = read_resu_file(f"{folder_name}{mp_id:05}_RESU_{zeitpunkt_str}.csv")
     df_terz = read_terz_file(f"{folder_name}{mp_id:05}_TERZ_{zeitpunkt_str}.csv")
-    conn = psycopg2.connect("postgres://postgres:password@localhost:5432/tsdb")
-    print(df_resu)
-    insert_resu(df_resu)
+    delete_duplicates(mp_id, df_resu.index[0], df_resu.index[-1], "tsdb_resu")
+    delete_duplicates(mp_id, df_terz.index[0], df_terz.index[-1], "tsdb_terz")
 
-    # print(df_resu)
-
-    # data_points = transform_messdaten_2_influx_point_sequence(project_name, name_messpunkt, df_resu, df_terz, df_mete)
-
-    logging.info("Start pushing...")
-    # push_data(data_points)
-    logging.info("Push succeded...")
-    
+    insert_resu(df_resu, mp_id)
+    insert_terz(df_terz, mp_id)
+    if df_mete is not None:
+        delete_duplicates(mp_id, df_mete.index[0], df_mete.index[-1], "tsdb_mete")
+        insert_mete(df_mete, mp_id)
 
 def run():
     # http://localhost:8000/tsdb/evaluation/?messpunkt=1&time_after=2022-10-05T05%3A00%3A02&time_before=2022-10-05T05%3A00%3A06
@@ -161,11 +216,11 @@ def run():
                 try:
                     datum : datetime = datetime(year, month, d, h, 0, 0)
                     folder_name = "C:\CSV Zielordner\MB Sifi MP2 - Bau 46" + "/" + datum.strftime("%Y-%m/%d/%H/") # mp.OrdnerMessdaten + "/"+ datum.strftime("%Y-%m/%d/%H/")
+                    folder_name = "../dev/"
                     zeitpunkt_str = datum.strftime("%Y_%m_%d_%H")
                     push_blocks_2_database(project_name, 2, "test", folder_name, zeitpunkt_str)
                 except Exception as ex:
-                    logging.info(f"Problem bei {h}")
-                    logging.error(ex)
+                    logging.exception(f"Problem bei {h}")
 
 
 

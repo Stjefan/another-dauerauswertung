@@ -14,20 +14,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='EvaluationMesspunkt',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('time', models.DateTimeField()),
-                ('lafeq', models.FloatField()),
-                ('rejected', models.FloatField(null=True)),
-                ('detected', models.FloatField(null=True)),
-            ],
-            options={
-                'db_table': 'tsdb_evaluationmesspunkt_v6',
-                'managed': False,
-            },
-        ),
-        migrations.CreateModel(
             name='Detection',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -228,5 +214,26 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='mete',
             index=models.Index(fields=['time', 'messpunkt'], name='mete_time_messpunkt_idx'),
+        ),
+        migrations.RunSQL(
+            """
+            DROP VIEW IF EXISTS tsdb_evaluationmesspunkt;
+            CREATE OR REPLACE VIEW tsdb_evaluationmesspunkt
+            AS SELECT r.id as id, r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) LEFT JOIN tsdb_rejected rej ON r.time = rej.time;
+            """
+        ),
+        migrations.CreateModel(
+            name='EvaluationMesspunkt',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('time', models.DateTimeField()),
+                ('lafeq', models.FloatField()),
+                ('rejected', models.FloatField(null=True)),
+                ('detected', models.FloatField(null=True)),
+            ],
+            options={
+                'db_table': 'tsdb_evaluationmesspunkt',
+                'managed': False,
+            },
         ),
     ]

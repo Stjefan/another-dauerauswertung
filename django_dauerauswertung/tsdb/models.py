@@ -32,6 +32,7 @@ class ExecutedEvaluation(models.Model):
     verhandene_messwerte = models.IntegerField()
     verwertebare_messwerte = models.IntegerField()
     in_berechnung_gewertete_messwerte =  models.IntegerField()
+    zuordnung = models.ForeignKey(Projekt, on_delete=models.CASCADE)
 
 
 
@@ -147,9 +148,9 @@ class EvaluationMesspunkt(models.Model):
     
     class Meta:
         managed = False
-        db_table = 'tsdb_evaluationmesspunkt_v6'
+        db_table = 'tsdb_evaluationmesspunkt'
         
-        # CREATE VIEW tsdb_evaluationmesspunkt_v6 AS SELECT r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) LEFT JOIN tsdb_rejected rej ON r.time = rej.time;
+        # CREATE VIEW tsdb_evaluationmesspunkt_v6 AS SELECT r.id as id, r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) LEFT JOIN tsdb_rejected rej ON r.time = rej.time;
 
         # SELECT * FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) WHERE r.time >= '2022-10-05 05:00:25' and r.time <= '2022-10-05 05:00:50';
 
