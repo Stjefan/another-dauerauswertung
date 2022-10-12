@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 
 # Create your models here.
@@ -13,6 +14,8 @@ class Messpunkt(models.Model):
 class Immissionsort(models.Model):
     name = models.CharField(max_length = 200)
     projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE, null=True, blank=True)
+    grenzwert_tag = models.FloatField(default=0.0)
+    grenzwert_nacht = models.FloatField(default=0.0)
 
 
 class Schallursache(models.Model):
