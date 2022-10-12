@@ -15,6 +15,7 @@ def run():
     SELECT COUNT(*) FROM (Select RESU.*, ERKENNUNG.time AS T from tsdb_resu AS RESU LEFT JOIN tsdb_erkennung AS ERKENNUNG ON
     RESU.time >= ERKENNUNG.time AND RESU.time <= (ERKENNUNG.time + (INTERVAL '1 sec' * ERKENNUNG.dauer)) 
     WHERE RESU.time >= '2022-08-01 10:00:00' AND RESU.time <= '2022-08-01 10:15:00'
-    AND RESU.messpunkt_id = 3) AS JOINED_RESU WHERE T is not null"""
+    AND RESU.messpunkt_id = 3) AS JOINED_RESU WHERE T is not null
+    """
     cursor.execute(q)
     print(cursor.fetchall())

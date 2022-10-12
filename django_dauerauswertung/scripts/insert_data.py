@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 def create_debug_auswertungslauf():
     selected_date = datetime(2022, 12, 1, 10, 0, 0)
+    e = ExecutedEvaluation()
     if True:
         for i in range(0, 20):
             n = Detected()
@@ -19,6 +20,18 @@ def create_debug_auswertungslauf():
                 n.filter = Rejection.objects.get(id=1)
                 n.time = selected_date + timedelta(minutes=i, seconds=ii+25)
                 n.save()
+
+def create_immendingen_project():
+    p0 = Projekt()
+    p0.name = "Immendingen"
+    p0.save()
+
+def create_mannheim_project():
+    p0 = Projekt()
+    p0.name = "Mannheim"
+    p0.save()
+
+
 def create_debug_project():
     p0 = Projekt()
     p0.name = "Debug"

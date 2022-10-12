@@ -14,6 +14,7 @@ class Immissionsort(models.Model):
     name = models.CharField(max_length = 200)
     projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE, null=True, blank=True)
 
+
 class Schallursache(models.Model):
     name = models.CharField(max_length = 200)
     gemessen_an = models.ForeignKey(Messpunkt, on_delete=models.CASCADE, null=True, blank=True)
