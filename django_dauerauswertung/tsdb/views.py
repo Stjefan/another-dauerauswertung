@@ -2,10 +2,17 @@ from django.shortcuts import render
 
 from rest_framework import viewsets
 from rest_framework import serializers
-from .models import EvaluationMesspunkt, Immissionsort, LrPegel, Messpunkt, Projekt, Resu
+from .models import EvaluationMesspunkt, Immissionsort, LrPegel, Messpunkt, Projekt, Resu, Terz, Mete
 from django.urls import path, include
 from django_filters import rest_framework as filters
 from django_filters import FilterSet, DateTimeFromToRangeFilter
+from rest_framework.pagination import PageNumberPagination
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 # Create your views here.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -27,7 +34,7 @@ class MessspunktSerializer(serializers.ModelSerializer):
 class ImmissionsortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Immissionsort
-        fields = ["name"]
+        fields = ["name", "grenzwert_tag", "grenzwert_nacht"]
 
 class ProjektSerializer(serializers.ModelSerializer):
     messpunkt_set = MessspunktSerializer(many=True)
@@ -62,11 +69,21 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = AuswertungMesspunktFilter
-    
+
+class TerzSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Terz
+        fields = "__all__" #['time', 'hz20', 'hz31_5']
+
 class ResuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resu
         fields = ['time', 'lafeq', 'lafmax']
+
+class MeteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mete
+        fields = ['time']
 
 class ResuFilter(FilterSet):
     time = DateTimeFromToRangeFilter()
@@ -77,10 +94,26 @@ class ResuFilter(FilterSet):
             'messpunkt': ['exact']
         }
 class ResuViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Resu.objects.all()
+    queryset = Resu.objects.all().order_by('-time')
     serializer_class = ResuSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ResuFilter
+    pagination_class = StandardResultsSetPagination
+
+
+class TerzViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Terz.objects.all().order_by('-time')
+    serializer_class = TerzSerializer
+    # filter_backends = (filters.DjangoFilterBackend,)
+    # filterset_class = ResuFilter
+    pagination_class = StandardResultsSetPagination
+
+class MeteViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Mete.objects.all().order_by('-time')
+    serializer_class = MeteSerializer
+    # filter_backends = (filters.DjangoFilterBackend,)
+    # filterset_class = ResuFilter
+    pagination_class = StandardResultsSetPagination
 
 
 class LrViewSet(viewsets.ReadOnlyModelViewSet):
