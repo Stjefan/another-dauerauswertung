@@ -9,8 +9,9 @@ col_headers_resu_in_svantek_file = ["Time", 'LAFmax (Ch1, P1) [dB]', 'LAFeq (Ch1
              'LCFeq (Ch1, P2) [dB]']
 
 rename_columns_resu_from_file_for_api = {"Time": "Date/Time",
-                         'LAFmax (Ch1, P1) [dB]': "lafmax",
+                         
                          'LAFeq (Ch1, P1) [dB]': "lafeq",
+                         'LAFmax (Ch1, P1) [dB]': "lafmax",
                          'LCFeq (Ch1, P2) [dB]': "lcfeq"}
 
 cols_terz = ["Time",
@@ -148,6 +149,7 @@ def process_svantek_rtm(filepath: str):
     # df_resu["LZFmax"] = None
     df_resu.set_index("Date/Time", inplace=True)
     df_resu.dropna(inplace=True)
+    df_resu.sort_index(inplace=True)
 
     df_mete = df[cols_mete].rename(columns=cols_mete_rename_dict)
     df_mete.set_index("Date/Time", inplace=True)
@@ -158,11 +160,15 @@ def process_svantek_rtm(filepath: str):
             "Windrichtung": "winddirection", "MaxWindgeschwindigkeit": "windspeed", "Regen": "rain"}, 
             inplace=True)
     # logging.info(df_mete)
+    df_mete.sort_index(inplace=True)
+
 
     df_terz = df[cols_terz].rename(columns=cols_terz_rename_dict)
     df_terz = df_terz.rename(columns=rename_cols_terz_4_json)
     df_terz.set_index("Date/Time", inplace=True)
     df_terz.dropna(inplace=True)
+    df_terz.sort_index(inplace=True)
+
     return (df_resu, df_terz, df_mete)
 
 

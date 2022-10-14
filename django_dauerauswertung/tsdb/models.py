@@ -7,29 +7,44 @@ from timescale.db.models.models import TimescaleModel, TimescaleDateTimeField
 class Projekt(models.Model):
     name = models.CharField(max_length = 200)
 
+
+
 class Messpunkt(models.Model):
     name = models.CharField(max_length = 200)
     projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE, null=True, blank=True)
+    gk_rechts = models.FloatField(default=0.0)
+    gk_hoch = models.FloatField(default=0.0)
+    is_meteo_station = models.BooleanField(default=False)
 
 class Immissionsort(models.Model):
     name = models.CharField(max_length = 200)
     projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE, null=True, blank=True)
     grenzwert_tag = models.FloatField(default=0.0)
     grenzwert_nacht = models.FloatField(default=0.0)
+    gk_rechts = models.FloatField(default=0.0)
+    gk_hoch = models.FloatField(default=0.0)
 
 
-class Schallursache(models.Model):
+class LaermursacheAnMesspunkt(models.Model):
     name = models.CharField(max_length = 200)
     gemessen_an = models.ForeignKey(Messpunkt, on_delete=models.CASCADE, null=True, blank=True)
 
+class LaermursacheAnImmissionsorten(models.Model):
+    name = models.CharField(max_length = 200)
+    projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE, null=True, blank=True)
+
+class Ausbreitstungsfaktor(models.Model):
+    immissionsort = models.ForeignKey(Immissionsort, on_delete=models.CASCADE, null=True, blank=True)
+    messpunkt = models.ForeignKey(Messpunkt, on_delete=models.CASCADE, null=True, blank=True)
+    ausbreitungskorrektur = models.FloatField(default=0.0)
+
 class Rejection(models.Model):
     name = models.CharField(max_length = 200)
-    messpunkt = models.ForeignKey(Messpunkt, on_delete=models.CASCADE, null=True, blank=True)
 
 class Detection(models.Model):
     name = models.CharField(max_length = 200)
 
-class ExecutedEvaluation(models.Model):
+class Auswertungslauf(models.Model):
     zeitpunkt_im_beurteilungszeitraum = models.DateTimeField()
     zeitpunkt_durchfuehrung = models.DateTimeField()
     verhandene_messwerte = models.IntegerField()
@@ -123,24 +138,30 @@ class Mete(TimescaleModel):
 
 class LrPegel(TimescaleModel):
     immissionsort = models.ForeignKey(Immissionsort, on_delete=models.CASCADE, null=True, blank=True)
-    verursacht = models.ForeignKey(Schallursache, on_delete=models.CASCADE, null=True, blank=True)
+    verursacht = models.ForeignKey(LaermursacheAnImmissionsorten, on_delete=models.CASCADE, null=True, blank=True)
     pegel = models.FloatField()
+    berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
 class MaxPegel(TimescaleModel):
     immissionsort = models.ForeignKey(Immissionsort, on_delete=models.CASCADE, null=True, blank=True)
     pegel = models.FloatField()
+    berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
 class SchallleistungPegel(TimescaleModel):
     messpunkt = models.ForeignKey(Messpunkt, on_delete=models.CASCADE, null=True, blank=True)
     pegel = models.FloatField()
+    berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
 class Detected(TimescaleModel):
     messpunkt = models.ForeignKey(Messpunkt, on_delete=models.SET_NULL, null=True, blank=True)
     dauer = models.FloatField()
     typ = models.ForeignKey(Detection, on_delete=models.CASCADE, null=True, blank=True)
+    berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
 class Rejected(TimescaleModel):
     filter = models.ForeignKey(Rejection, on_delete=models.CASCADE, null=True, blank=True)
+    messpunkt = models.ForeignKey(Messpunkt, on_delete=models.SET_NULL, null=True, blank=True)
+    berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
 class EvaluationMesspunkt(models.Model):
     time = models.DateTimeField()

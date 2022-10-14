@@ -116,17 +116,20 @@ def read_terz_file(filepath: str):
     return df
 
 
-def insert_mete(df, messpunkt_id: int):
-    
-    cols = ['time', 'messpunkt_id'] + ["rain",
+def insert_mete(df, messpunkt_id: int, delete_old_data = True):
+    if delete_old_data:
+        delete_duplicates(messpunkt_id, df.index[0], df.index[-1], "tsdb_mete")
+    mete_cols = ["rain",
     "temperature",
     "windspeed",
     "pressure",
     "humidity",
     "winddirection"]
+    cols = ['time', 'messpunkt_id'] + mete_cols
 
     records = []
-    df_no_index = df.reset_index()
+    df_reordered = df[mete_cols]
+    df_no_index = df_reordered.reset_index()
     df_no_index.insert(1, "messpunkt_id", messpunkt_id)
     records = df_no_index.to_numpy()
     print(records)
@@ -136,7 +139,9 @@ def insert_mete(df, messpunkt_id: int):
     mgr.copy(records)
     conn.commit()
 
-def insert_terz(df, messpunkt_id: int):
+def insert_terz(df, messpunkt_id: int, delete_old_data = True):
+    if delete_old_data:
+        delete_duplicates(messpunkt_id, df.index[0], df.index[-1], "tsdb_terz")
     frequencies = ['hz20', 'hz25', 'hz31_5', 'hz40', 'hz50', 'hz63', 'hz80', 'hz100', 'hz125', 'hz160', 'hz200', 'hz250',
                             'hz315', 'hz400', 'hz500', 'hz630', 'hz800', 'hz1000', 'hz1250', 'hz1600', 'hz2000', 'hz2500', 'hz3150',
                             'hz4000',
@@ -149,8 +154,10 @@ def insert_terz(df, messpunkt_id: int):
                             'hz20000']
     cols = ['time', 'messpunkt_id'] + frequencies
 
+    df_reordered = df[frequencies]
+
     records = []
-    df_no_index = df.reset_index()
+    df_no_index = df_reordered.reset_index()
     df_no_index.insert(1, "messpunkt_id", messpunkt_id)
     records = df_no_index.to_numpy()
     print(records)
@@ -160,14 +167,18 @@ def insert_terz(df, messpunkt_id: int):
     mgr.copy(records)
     conn.commit()
 
-def insert_resu(df, messpunkt_id: int):
+def insert_resu(df, messpunkt_id: int, delete_old_data = True):
+    if delete_old_data:
+        delete_duplicates(messpunkt_id, df.index[0], df.index[-1], "tsdb_resu")
     cols = ['time', 'messpunkt_id', 'lafeq', 'lafmax', 'lcfeq']
+    df_reordered = df[['lafeq', 'lafmax', 'lcfeq']]
 
     records = []
-    df_no_index = df.reset_index()
+    df_no_index = df_reordered.reset_index()
     df_no_index.insert(1, "messpunkt_id", messpunkt_id)
+    
     records = df_no_index.to_numpy()
-    # print(records)
+    print(records)
     # records = [(df.index[0], 1, 20.0, 25.0, 21.0)]
     conn = psycopg2.connect(ts_connection_string)
     mgr = CopyManager(conn, 'tsdb_resu', cols)

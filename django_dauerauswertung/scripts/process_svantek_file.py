@@ -5,12 +5,13 @@ import logging
 from logging import config
 
 import scripts.insert_svantek_file as read_svantek_file
+from scripts.insert_block_file import insert_resu, delete_duplicates, insert_terz, insert_mete
 import sys
 
 
 FORMAT = '%(filename)s %(asctime)s %(message)s'
 logging.basicConfig(
-    level=logging.DEBUG, format=FORMAT, handlers=[logging.FileHandler("logs/push_files.log"),
+    level=logging.DEBUG, format=FORMAT, handlers=[logging.FileHandler("../logs/push_files.log"),
     logging.StreamHandler(sys.stdout)]
     )
 
@@ -108,21 +109,29 @@ def process_data_file(file_path: str, project_name: str, messpunkt_name: str, me
         logging.exception(e)
         # raise e
 
-if __name__ == '__main__':
-    selected_month = "202209"
-    if False:
-        for folder in [f for f in checked_folder]:
-            insert_files_from_folder("immendingen", folder)
-    elif False:
-        for folder in folders_korrelationsmessung:
-            insert_files_from_folder("immendingen_korrelationsmessung", folder)
-    elif False:
-        for i in range(2, 5):
-            selected_month = f"2021{i:02}"
-            for folder in [f for f in folders_sindelfingen if f.name_messpunkt in ["Sindelfingen MP 4"]]:
-                insert_files_from_folder("sindelfingen", folder, selected_month)
-        
-    else:
-        for m in ["202209"]:
-            for folder in folders_mannheim:
-                insert_files_from_folder("mannheim", folder, m)
+def run():
+    df_resu, df_terz, df_mete = read_svantek_file.process_svantek_rtm("../dev/200-39765-20220401_03_45_00_L53817.CSV")
+    insert_resu(df_resu, 2)
+    insert_terz(df_terz, 2)
+    insert_mete(df_mete, 2)
+if False:
+    if __name__ == '__main__':
+        selected_month = "202209"
+        if False:
+            for folder in [f for f in checked_folder]:
+                insert_files_from_folder("immendingen", folder)
+        elif False:
+            for folder in folders_korrelationsmessung:
+                insert_files_from_folder("immendingen_korrelationsmessung", folder)
+        elif False:
+            for i in range(2, 5):
+                selected_month = f"2021{i:02}"
+                for folder in [f for f in folders_sindelfingen if f.name_messpunkt in ["Sindelfingen MP 4"]]:
+                    insert_files_from_folder("sindelfingen", folder, selected_month)
+            
+        elif False:
+            for m in ["202209"]:
+                for folder in folders_mannheim:
+                    insert_files_from_folder("mannheim", folder, m)
+        else:
+            df_resu, df_terz, df_mete = read_svantek_file.process_svantek_rtm("../../dev/200-39765-20220401_03_45_00_L53817.CSV")

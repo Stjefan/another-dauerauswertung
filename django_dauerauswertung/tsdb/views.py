@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 from rest_framework import viewsets
 from rest_framework import serializers
-from .models import EvaluationMesspunkt, Immissionsort, LrPegel, Messpunkt, Projekt, Resu, Terz, Mete
+from .models import EvaluationMesspunkt, Immissionsort, LrPegel, Messpunkt, Projekt, Resu, Terz, Mete, LaermursacheAnImmissionsorten, LaermursacheAnMesspunkt
 from django.urls import path, include
 from django_filters import rest_framework as filters
 from django_filters import FilterSet, DateTimeFromToRangeFilter
@@ -21,27 +21,43 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['time', 'lafeq', 'rejected', 'detected']
 
 
+class LaermursacheAnImmissionsortenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LaermursacheAnImmissionsorten
+        fields = "__all__"
+
+        
+
+
+class LaermursacheAnMesspunktSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LaermursacheAnMesspunkt
+        fields = ["name", "id"]
+
+
 class LrSerializer(serializers.ModelSerializer):
     class Meta:
         model = LrPegel
-        fields = ['time', 'pegel', 'verursacht', 'immissionsort']
+        fields = ['time', 'pegel', 'verursacht', 'immissionsort', "id"]
 
 class MessspunktSerializer(serializers.ModelSerializer):
+    laermursacheanmesspunkt_set = LaermursacheAnMesspunktSerializer(many=True)
     class Meta:
         model = Messpunkt
-        fields = ["name", "schallursache_set"]
+        fields = ["name", "gk_rechts", "gk_hoch", "id", "is_meteo_station", "laermursacheanmesspunkt_set"]
 
 class ImmissionsortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Immissionsort
-        fields = ["name", "grenzwert_tag", "grenzwert_nacht"]
+        fields = ["name", "grenzwert_tag", "grenzwert_nacht", "gk_rechts", "gk_hoch"]
 
 class ProjektSerializer(serializers.ModelSerializer):
     messpunkt_set = MessspunktSerializer(many=True)
     immissionsort_set = ImmissionsortSerializer(many=True)
+    laermursacheanimmissionsorten_set = LaermursacheAnImmissionsortenSerializer(many=True)
     class Meta:
         model = Projekt
-        fields = ["name", "id", "messpunkt_set", "immissionsort_set"]
+        fields = ["name", "id", "messpunkt_set", "immissionsort_set", "laermursacheanimmissionsorten_set"]
 
 class LrFilter(FilterSet):
     time = DateTimeFromToRangeFilter()
