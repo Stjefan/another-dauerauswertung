@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from tsdb.models import Projekt, LaermursacheAnImmissionsorten,Rejection, Detection, Auswertungslauf, Immissionsort, Messpunkt
+from tsdb.models import Projekt, LaermursacheAnImmissionsorten,Rejection, Detection, Auswertungslauf, Immissionsort, Messpunkt, Ausbreitstungsfaktor
 
 # Register your models here.
 
@@ -11,3 +11,4 @@ admin.site.register(Detection)
 admin.site.register(Auswertungslauf)
 admin.site.register(Messpunkt)
 admin.site.register(Immissionsort)
+admin.site.register(Ausbreitstungsfaktor)

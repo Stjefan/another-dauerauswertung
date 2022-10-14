@@ -11,18 +11,22 @@ class Projekt(models.Model):
 
 class Messpunkt(models.Model):
     name = models.CharField(max_length = 200)
-    projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE, null=True, blank=True)
+    projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE)
     gk_rechts = models.FloatField(default=0.0)
     gk_hoch = models.FloatField(default=0.0)
     is_meteo_station = models.BooleanField(default=False)
+    id_external = models.IntegerField(default=0)
 
 class Immissionsort(models.Model):
     name = models.CharField(max_length = 200)
-    projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE, null=True, blank=True)
+    projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE)
     grenzwert_tag = models.FloatField(default=0.0)
     grenzwert_nacht = models.FloatField(default=0.0)
     gk_rechts = models.FloatField(default=0.0)
     gk_hoch = models.FloatField(default=0.0)
+
+    name_4_excel =  models.CharField(max_length = 32)
+    id_external = models.IntegerField(default=0)
 
 
 class LaermursacheAnMesspunkt(models.Model):

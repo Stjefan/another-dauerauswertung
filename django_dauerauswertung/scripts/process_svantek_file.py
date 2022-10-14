@@ -64,15 +64,9 @@ def get_files(folder, target_date_as_string):
     filtered_files = [fil for fil in list_of_files if target_date_as_string in fil] 
     return filtered_files
 
-def read_and_push(file_name, messpunkt_name, messpunkt_typ):
-    if messpunkt_typ == Messfiletyp.version_07_21_mit_wetterdaten:
-        df_resu, df_terz, df_mete = read_svantek_file.process_svantek_rtm(file_name)
-        read_svantek_file.push_2_api(df_resu, df_terz, df_mete, file_name, messpunkt_name)
-    else:
-        df_resu, df_terz = read_svantek_file.process_svantek_rt(file_name)
-        read_svantek_file.push_2_api(df_resu, df_terz, None, file_name, messpunkt_name)
 
-def insert_files_from_folder(project_name: str, folder: MessdatenFolder, filter_string: str = "202209"):
+
+def insert_files_from_folder(messpunkt_id: int, folder: MessdatenFolder, filter_string: str = "202209"):
     logging.info(folder)
     for fil in get_files(folder.folder_path, filter_string):
         logging.info(fil)
@@ -87,8 +81,14 @@ def insert_files_from_folder(project_name: str, folder: MessdatenFolder, filter_
                 df_mete = None
                 if folder.typ == Messfiletyp.version_07_21_mit_wetterdaten:
                     df_resu, df_terz, df_mete = read_svantek_file.process_svantek_rtm(fil)
+                    insert_resu(df_resu, messpunkt_id)
+                    insert_terz(df_terz, messpunkt_id)
+                    if df_mete is not None:
+                        insert_mete(df_mete, messpunkt_id)
                 else:
                     df_resu, df_terz = read_svantek_file.process_svantek_rt(fil)
+                    insert_resu(df_resu, messpunkt_id)
+                    insert_terz(df_terz, messpunkt_id)
 
             except Exception as e:
                 logging.exception(e)
@@ -110,10 +110,15 @@ def process_data_file(file_path: str, project_name: str, messpunkt_name: str, me
         # raise e
 
 def run():
-    df_resu, df_terz, df_mete = read_svantek_file.process_svantek_rtm("../dev/200-39765-20220401_03_45_00_L53817.CSV")
-    insert_resu(df_resu, 2)
-    insert_terz(df_terz, 2)
-    insert_mete(df_mete, 2)
+    if False:
+        df_resu, df_terz, df_mete = read_svantek_file.process_svantek_rtm("../dev/200-39765-20220401_03_45_00_L53817.CSV")
+        insert_resu(df_resu, 2)
+        insert_terz(df_terz, 2)
+        insert_mete(df_mete, 2)
+    if True:
+        insert_files_from_folder(2, checked_folder[0], "20220903")
+        
+
 if False:
     if __name__ == '__main__':
         selected_month = "202209"
