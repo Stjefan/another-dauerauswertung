@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from datetime import datetime
+from typing import Optional
 
 
 from pandas import Series, DataFrame
@@ -58,6 +59,11 @@ class Messpunkt:
     Filter: list[str] = field(default_factory=list)
     OrdnerMessdaten: str = ""
     column_lr: str = "N/A"
+    id_in_db: Optional[int] = None
+    
+    def __post_init__(self):
+        if self.id_in_db is None:
+            self.id_in_db = self.Id
     
     
 
@@ -96,9 +102,28 @@ class DTO_LrPegel:
     immissionsort: int
 
 @dataclass
+class DTO_MaxPegel:
+    time: datetime
+    pegel: float
+    id_immissionsort: int
+
+@dataclass
+class DTO_SchallleistungPegel:
+    time: datetime
+    pegel: float
+    id_messpunkt: int
+
+@dataclass
 class DTO_Rejected:
     time: datetime
     grund: int
+    id_messpunkt: int
+
+@dataclass
+class DTO_Detected:
+    time: datetime
+    dauer: int
+    id_messpunkt: int
 
 @dataclass
 class Ergebnisse:
@@ -107,11 +132,11 @@ class Ergebnisse:
     verhandene_messwerte: int
     verwertebare_messwerte: int
     in_berechnung_gewertete_messwerte: int
-    detected_set: list
+    detected_set: list[DTO_Detected]
     lrpegel_set: list[DTO_LrPegel]
-    rejected_set: list
-    maxpegel_set: list
-    schallleistungspegel_set: list
+    rejected_set: list[DTO_Rejected]
+    maxpegel_set: list[DTO_MaxPegel]
+    schallleistungspegel_set: list[DTO_SchallleistungPegel]
     zuordnung: int
 
 

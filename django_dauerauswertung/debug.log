@@ -21,3 +21,4 @@
 2022-10-21 09:50:45,023 django.utils.autoreload INFO     Watching for file changes with StatReloader
 2022-10-21 09:51:05,132 django.request WARNING  Not Found: /
 2022-10-21 09:51:05,132 django.request WARNING  Not Found: /
+2022-10-21 10:31:14,075 django.utils.autoreload INFO     Watching for file changes with StatReloader
