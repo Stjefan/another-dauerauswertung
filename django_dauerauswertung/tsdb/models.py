@@ -1,5 +1,6 @@
 from email.policy import default
 from django.db import models
+import logging
 
 # Create your models here.
 from timescale.db.models.models import TimescaleModel, TimescaleDateTimeField
@@ -16,6 +17,9 @@ class Messpunkt(models.Model):
     gk_hoch = models.FloatField(default=0.0)
     is_meteo_station = models.BooleanField(default=False)
     id_external = models.IntegerField(default=0)
+    upload_folder_svantek_file = models.CharField(max_length = 200, null=True, blank=True)
+    ablage_folder_transmes = models.CharField(max_length = 200, null=True, blank=True)
+    lwa = models.FloatField(default=0.0)
 
 class Immissionsort(models.Model):
     name = models.CharField(max_length = 200)
@@ -55,9 +59,6 @@ class Auswertungslauf(models.Model):
     verwertebare_messwerte = models.IntegerField()
     in_berechnung_gewertete_messwerte =  models.IntegerField()
     zuordnung = models.ForeignKey(Projekt, on_delete=models.CASCADE)
-
-
-
 
 
 class Resu(TimescaleModel):

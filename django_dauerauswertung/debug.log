@@ -1,0 +1,23 @@
+2022-10-20 14:11:22,996 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-20 14:11:43,348 tsdb.views   INFO     Start insertion
+2022-10-20 14:12:08,748 root         INFO     Start deletion
+2022-10-20 14:12:08,794 root         INFO     Deletion finished
+2022-10-20 14:14:27,716 tsdb.views   INFO     Insertion finished
+2022-10-20 14:17:12,293 django.utils.autoreload INFO     C:\Repos\another-dauerauswertung\django_dauerauswertung\tsdb\signals.py changed, reloading.
+2022-10-20 14:17:14,205 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-20 14:18:00,335 tsdb.views   INFO     Start insertion
+2022-10-20 14:18:20,446 root         INFO     Start deletion
+2022-10-20 14:18:20,461 root         INFO     Deletion finished
+2022-10-20 14:20:55,645 tsdb.views   INFO     Insertion finished
+2022-10-20 15:17:00,180 django.utils.autoreload INFO     C:\Repos\another-dauerauswertung\django_dauerauswertung\tsdb\migrations\0011_messpunkt_lwa.py changed, reloading.
+2022-10-20 15:17:01,321 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-20 15:17:35,129 django.utils.autoreload INFO     C:\Repos\another-dauerauswertung\django_dauerauswertung\tsdb\migrations\0011_messpunkt_lwa.py changed, reloading.
+2022-10-20 15:17:36,148 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-20 15:44:00,724 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-20 17:35:58,030 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-21 09:37:31,011 django.utils.autoreload INFO     C:\Repos\another-dauerauswertung\django_dauerauswertung\tsdb\migrations\0001_initial.py changed, reloading.
+2022-10-21 09:37:32,607 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-21 09:50:43,137 django.utils.autoreload INFO     C:\Repos\another-dauerauswertung\django_dauerauswertung\tsdb\views.py changed, reloading.
+2022-10-21 09:50:45,023 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-21 09:51:05,132 django.request WARNING  Not Found: /
+2022-10-21 09:51:05,132 django.request WARNING  Not Found: /

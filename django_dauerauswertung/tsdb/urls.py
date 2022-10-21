@@ -13,6 +13,7 @@ router.register(r'resu', views.ResuViewSet,basename="resu")
 router.register(r'terz', views.TerzViewSet,basename="terz")
 router.register(r'mete', views.MeteViewSet,basename="mete")
 router.register(r'lr', views.LrViewSet,basename="lr")
+router.register(r'auswertungslauf', views.AuswertungslaufViewSet,basename="auswertungslauf")
 router.register(r'projekt', views.ProjektViewSet,basename="projekt")
 
 

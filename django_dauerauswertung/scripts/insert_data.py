@@ -30,30 +30,30 @@ def create_immendingen_project():
     p0.name = "Immendingen"
     p0.save()
 
-    m1 = Messpunkt(name="Immendingen MP 1", gk_rechts = 3479801.64, gk_hoch = 5308413.74, projekt = p0)
+    m1 = Messpunkt(name="Immendingen MP 1", gk_rechts = 3479801.64, gk_hoch = 5308413.74, projekt = p0, id_external = 1)
     m1.save()
     v1a = LaermursacheAnMesspunkt(name =  f"{m1.name} - Unkategorisiert", gemessen_an = m1)
     v1a.save()
-    m2 = Messpunkt(name="Immendingen MP 2", gk_rechts = 3478651.2, gk_hoch = 5308912.9, projekt = p0)
+    m2 = Messpunkt(name="Immendingen MP 2", gk_rechts = 3478651.2, gk_hoch = 5308912.9, projekt = p0, id_external = 2)
     m2.save()
     v2a = LaermursacheAnMesspunkt(name =  f"{m2.name} - Unkategorisiert", gemessen_an = m2)
     v2a.save()
     
-    m3 = Messpunkt(name="Immendingen MP 3", gk_rechts = 3479665.2, gk_hoch = 5310121.2, projekt = p0)
+    m3 = Messpunkt(name="Immendingen MP 3", gk_rechts = 3479665.2, gk_hoch = 5310121.2, projekt = p0, id_external = 3)
     m3.save()
     v1a = LaermursacheAnMesspunkt(name =  f"{m3.name} - Unkategorisiert", gemessen_an = m3)
     v1a.save()
-    m4 = Messpunkt(name="Immendingen MP 4", gk_rechts = 3480498.61, gk_hoch = 5309049.1, projekt = p0)
+    m4 = Messpunkt(name="Immendingen MP 4", gk_rechts = 3480498.61, gk_hoch = 5309049.1, projekt = p0, id_external = 4)
     m4.save()
     v1a = LaermursacheAnMesspunkt(name =  f"{m4.name} - Unkategorisiert", gemessen_an = m4)
     v1a.save()
-    m5 = Messpunkt(name="Immendingen MP 5", gk_rechts = 3479604.83, gk_hoch = 5309170.3, projekt = p0)
+    m5 = Messpunkt(name="Immendingen MP 5", gk_rechts = 3479604.83, gk_hoch = 5309170.3, projekt = p0, id_external = 5)
     m5.save()
     v5a = LaermursacheAnMesspunkt(name =  f"{m5.name} - Unkategorisiert", gemessen_an = m5)
     v5a.save()
     v5b = LaermursacheAnMesspunkt(name =  f"{m5.name} - Vorbeifahrt", gemessen_an = m5)
     v5b.save()
-    m6 = Messpunkt(name="Immendingen MP 6", gk_rechts = 3480633.4, gk_hoch = 5310332.6, projekt = p0)
+    m6 = Messpunkt(name="Immendingen MP 6", gk_rechts = 3480633.4, gk_hoch = 5310332.6, projekt = p0, id_external = 6)
     m6.save()
     v6a = LaermursacheAnMesspunkt(name =  f"{m6.name} - Unkategorisiert", gemessen_an = m6)
     v6a.save()
@@ -170,7 +170,7 @@ def create_mannheim_project():
                   grenzwert_nacht=45, gk_rechts=49.52333, gk_hoch=8.48428, id_external = 5, projekt=p0  )
     io5.save()
     io6 =  Immissionsort(name="Spiegelfabrik 16", grenzwert_tag=55,
-                  grenzwert_nacht=45, gk_rechts=49.5191, gk_hoch=8.47877, id_external = 4, projekt=p0 )
+                  grenzwert_nacht=45, gk_rechts=49.5191, gk_hoch=8.47877, id_external = 6, projekt=p0 )
     io6.save()
     
     dict_abf_mannheim = {
@@ -248,18 +248,7 @@ def create_debug_project():
 
 
 def run():
-    for p in Projekt.objects.all():
-            p.delete()
-
-    create_immendingen_project()
-    create_mannheim_project()
-    if False:
-        for p in Projekt.objects.all():
-            p.delete()
-        # create_debug_project()
-
-
-        if False:
+    if True:
             for n in ["Grille", "Vogel", "LAFeq", "Zug", "Wind", "Regen"]:
                 r = Rejection()
                 r.name = n
@@ -269,6 +258,20 @@ def run():
                 e = Detection()
                 e.name = i
                 e.save()
+
+    if True:
+        for p in Projekt.objects.all():
+                p.delete()
+
+        create_immendingen_project()
+        create_mannheim_project()
+    if False:
+        for p in Projekt.objects.all():
+            p.delete()
+        # create_debug_project()
+
+
+        
 
 
     if False:
