@@ -58,6 +58,7 @@ class Messpunkt:
     Filter: list[str] = field(default_factory=list)
     OrdnerMessdaten: str = ""
     column_lr: str = "N/A"
+    id_in_db: int = 0
     
     
 

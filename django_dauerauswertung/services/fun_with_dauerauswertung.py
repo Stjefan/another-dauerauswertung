@@ -13,6 +13,6 @@ if __name__ == "__main__":
         logging.StreamHandler(sys.stdout)
         ]
     )
-    zeitpunkt = datetime(2022, 12, 12, 3, 30, 0)
-    ergebnis = werte_beurteilungszeitraum_aus(zeitpunkt)
+    zeitpunkt = datetime(2022, 10, 12, 8, 30, 0)
+    ergebnis = werte_beurteilungszeitraum_aus(zeitpunkt, "Immendingen")
     insert_auswertung_via_psycopg2(zeitpunkt, ergebnis)

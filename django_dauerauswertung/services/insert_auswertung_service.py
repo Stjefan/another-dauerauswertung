@@ -46,24 +46,24 @@ def insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis: Ergebnisse)
         """
     cursor.execute(q)
     new_row_id = cursor.fetchone()
-    lr_arr = [[i.time.isoformat(), i.pegel, i.verursacht, i.immissionsort, new_row_id] for i in ergebnis.lrpegel_set]
+    lr_arr = [[i.time.isoformat(), i.pegel, i.immissionsort, i.verursacht, new_row_id] for i in ergebnis.lrpegel_set]
     rejected_set = [[i.time.isoformat(), i.grund, 1, new_row_id] for i in ergebnis.rejected_set]
     detected_set = []
     maxpegel_set = []
     schallleistungspegel_set = []
 
-    
-    for i in range(0, 5*16*12):
-        # lr_arr.append([time, i, 1, 1, new_row_id[0]])
-        # rejected_set.append({"a": time, "b": 1, "c": 1, "d": new_row_id[0]})
-        rejected_set.append([time, 1, 1, new_row_id[0]])
-        
-        # detected_set.append({"a": time, "b": 10, "c": 1, "d": 1,  "e": new_row_id[0]})
-        detected_set.append([time, 10, 1, 1,  new_row_id[0]])
-        # maxpegel_set.append({"a": time, "b": 10, "c": 1, "d": new_row_id[0]})
-        maxpegel_set.append([time, 10, 1, new_row_id[0]])
-        # schallleistungspegel_set.append({"a": time, "b": 1, "c": 1, "d": new_row_id[0]})
-        schallleistungspegel_set.append([time, 1, 1, new_row_id[0]])
+    if False:
+        for i in range(0, 5*16*12):
+            # lr_arr.append([time, i, 1, 1, new_row_id[0]])
+            # rejected_set.append({"a": time, "b": 1, "c": 1, "d": new_row_id[0]})
+            rejected_set.append([time, 1, 1, new_row_id[0]])
+            
+            # detected_set.append({"a": time, "b": 10, "c": 1, "d": 1,  "e": new_row_id[0]})
+            detected_set.append([time, 10, 1, 1,  new_row_id[0]])
+            # maxpegel_set.append({"a": time, "b": 10, "c": 1, "d": new_row_id[0]})
+            maxpegel_set.append([time, 10, 1, new_row_id[0]])
+            # schallleistungspegel_set.append({"a": time, "b": 1, "c": 1, "d": new_row_id[0]})
+            schallleistungspegel_set.append([time, 1, 1, new_row_id[0]])
 
 
     execute_values(cursor, """INSERT INTO tsdb_lrpegel (time, pegel, immissionsort_id, verursacht_id, berechnet_von_id) VALUES %s""", lr_arr)

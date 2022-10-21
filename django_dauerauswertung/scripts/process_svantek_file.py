@@ -8,6 +8,8 @@ import scripts.insert_svantek_file as read_svantek_file
 from scripts.insert_block_file import insert_resu, delete_duplicates, insert_terz, insert_mete
 import sys
 
+from tsdb.models import (Messpunkt, Immissionsort, Projekt)
+
 
 FORMAT = '%(filename)s %(asctime)s %(message)s'
 logging.basicConfig(
@@ -30,29 +32,29 @@ class MessdatenFolder:
         return self.typ
 
 checked_folder = [
-    MessdatenFolder(r"C:\CSV Zielordner\MB Im MP1 - Handlingkurs\Geloescht\*", "Immendingen MP 1", Messfiletyp.version_07_21_ohne_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Im MP2 - Bertha Leitstand\Geloescht\*", "Immendingen MP 2",  Messfiletyp.version_07_21_mit_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Im MP3 - Stadtstraße\Geloescht\*","Immendingen MP 3",  Messfiletyp.version_07_21_ohne_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Im MP4 - Innenstadt\Geloescht\*", "Immendingen MP 4",Messfiletyp.version_07_21_ohne_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Im MP5 - Fernstraßenoval\Geloescht\*", "Immendingen MP 5", Messfiletyp.version_07_21_ohne_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Im MP6 - Stadtstraße Heidestrecke\Geloescht\*","Immendingen MP 6",  Messfiletyp.version_07_21_ohne_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Im MP1 - Handlingkurs/Geloescht/*", "Immendingen MP 1", Messfiletyp.version_07_21_ohne_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Im MP2 - Bertha Leitstand/Geloescht/*", "Immendingen MP 2",  Messfiletyp.version_07_21_mit_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Im MP3 - Stadtstraße/Geloescht/*","Immendingen MP 3",  Messfiletyp.version_07_21_ohne_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Im MP4 - Innenstadt/Geloescht/*", "Immendingen MP 4",Messfiletyp.version_07_21_ohne_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Im MP5 - Fernstraßenoval/Geloescht/*", "Immendingen MP 5", Messfiletyp.version_07_21_ohne_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Im MP6 - Stadtstraße Heidestrecke/Geloescht/*","Immendingen MP 6",  Messfiletyp.version_07_21_ohne_wetterdaten),
 ]
 
 folders_korrelationsmessung = [
-    MessdatenFolder(r"C:\CSV Zielordner\MB Im IO17 - Am Hewenegg 8\Geloescht/*", "Immendingen IO 17", Messfiletyp.version_07_21_ohne_wetterdaten)
+    MessdatenFolder(r"C:/CSV Zielordner/MB Im IO17 - Am Hewenegg 8/Geloescht/*", "Immendingen IO 17", Messfiletyp.version_07_21_ohne_wetterdaten)
 ]
 
 folders_mannheim = [
-    MessdatenFolder(r"C:\CSV Zielordner\DT MA MP2\Geloescht/*", "Mannheim MP 2",  Messfiletyp.version_07_21_ohne_wetterdaten)
+    MessdatenFolder(r"C:/CSV Zielordner/DT MA MP2/Geloescht/*", "Mannheim MP 2",  Messfiletyp.version_07_21_ohne_wetterdaten)
 ]
 
 folders_sindelfingen = [
-    MessdatenFolder(r"C:\CSV Zielordner\MB Sifi MP1 - Bau 34\Geloescht/*", "Sindelfingen MP 1",  Messfiletyp.version_07_21_ohne_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Sifi MP2 - Bau 46\Geloescht/*", "Sindelfingen MP 2",  Messfiletyp.version_07_21_mit_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Sifi MP3 - Bau 7_4 Penthouse\Geloescht/*", "Sindelfingen MP 3",  Messfiletyp.version_07_21_ohne_wetterdaten),
-    # MessdatenFolder(r"C:\CSV Zielordner\MB Sifi MP4 - Bau 50_12\Geloescht/*", "Sindelfingen MP 4",  Messfiletyp.version_07_21_ohne_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Sifi MP4 - Bau 50_12\Geloescht/Geloescht 2021\Unzipped/*", "Sindelfingen MP 4",  Messfiletyp.version_07_21_ohne_wetterdaten),
-    MessdatenFolder(r"C:\CSV Zielordner\MB Sifi MP5 - Bau 17_4\Geloescht/*", "Sindelfingen MP 5",  Messfiletyp.version_07_21_ohne_wetterdaten)
+    MessdatenFolder(r"C:/CSV Zielordner/MB Sifi MP1 - Bau 34/Geloescht/*", "Sindelfingen MP 1",  Messfiletyp.version_07_21_ohne_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Sifi MP2 - Bau 46/Geloescht/*", "Sindelfingen MP 2",  Messfiletyp.version_07_21_mit_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Sifi MP3 - Bau 7_4 Penthouse/Geloescht/*", "Sindelfingen MP 3",  Messfiletyp.version_07_21_ohne_wetterdaten),
+    # MessdatenFolder(r"C:/CSV Zielordner/MB Sifi MP4 - Bau 50_12/Geloescht/*", "Sindelfingen MP 4",  Messfiletyp.version_07_21_ohne_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Sifi MP4 - Bau 50_12/Geloescht/Geloescht 2021/Unzipped/*", "Sindelfingen MP 4",  Messfiletyp.version_07_21_ohne_wetterdaten),
+    MessdatenFolder(r"C:/CSV Zielordner/MB Sifi MP5 - Bau 17_4/Geloescht/*", "Sindelfingen MP 5",  Messfiletyp.version_07_21_ohne_wetterdaten)
 ]
 
 def get_files(folder, target_date_as_string):
@@ -115,9 +117,27 @@ def run():
         insert_resu(df_resu, 2)
         insert_terz(df_terz, 2)
         insert_mete(df_mete, 2)
-    if True:
+    if False:
+
         insert_files_from_folder(2, checked_folder[0], "20220903")
-        
+    if False:
+        mp = Messpunkt.objects.get(id_external=2, projekt__name__icontains="mannheim")
+        mp.ablage_folder_transmes = folders_mannheim[0].folder_path
+        mp.save()
+
+        for i in range(0, 6):
+            mp = Messpunkt.objects.get(id_external=i+1, projekt__name__icontains="immendingen")
+            mp.ablage_folder_transmes = checked_folder[i].folder_path
+            mp.save()
+    if False:
+        mp = Messpunkt.objects.get(id_external=2, projekt__name__icontains="mannheim")
+        print(mp.id)
+        insert_files_from_folder(mp.id, folders_mannheim[0], "202210")
+    if True:
+        for i in range(0, 6):
+            mp = Messpunkt.objects.get(id_external=i+1, projekt__name__icontains="immendingen")
+            print(mp.id)
+            insert_files_from_folder(mp.id, checked_folder[i], "202210")
 
 if False:
     if __name__ == '__main__':

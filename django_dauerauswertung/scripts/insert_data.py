@@ -25,6 +25,10 @@ def create_debug_auswertungslauf():
                 n.time = selected_date + timedelta(minutes=i, seconds=ii+25)
                 n.save()
 
+def update_mps():
+    ["C:\CSV Zielordner\MB Im MP1 - Handlingkurs\Geloescht\*"]
+    ["C:\CSV Zielordner\DT MA MP2\Geloescht/*"]
+
 def create_immendingen_project():
     p0 = Projekt()
     p0.name = "Immendingen"
@@ -241,7 +245,8 @@ def create_debug_project():
     
 
         
-
+def create_sindelfingen_project():
+    pass
 
 
     

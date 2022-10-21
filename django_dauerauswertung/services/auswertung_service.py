@@ -11,7 +11,7 @@ from DTO import (Projekt, Immissionsort, DTO_LrPegel, DTO_Rejected,
 from constants import get_interval_beurteilungszeitraum_from_datetime, get_id_corresponding_beurteilungszeitraum, terzfrequenzen, umrechnung_Z_2_A, get_start_end_beurteilungszeitraum_from_datetime
 
 
-from messdaten_service import get_resudaten, get_terzdaten, get_metedaten, get_resu_all_mps, get_terz_all_mps, read_mete_data_v1
+from messdaten_service import RandomMessdatenService # get_resudaten, get_terzdaten, get_metedaten, get_resu_all_mps, get_terz_all_mps, read_mete_data_v1
 
 import stumpy
 import math
@@ -19,39 +19,12 @@ import scipy
 
 from konfiguration import project_mannheim
 
-def erstelle_ergebnis_df(originators, jahr, monat, tag, sekunde_from, sekunde_to, io, mps: list[Messpunkt]):
-    # not_used = [str(mp.Id) + "_" + erg for mp in mps for erg in mp.Ereignisse]
-    # originators = not_used # [mp.id for mp in mps]
-    dti = pd.date_range(
-        datetime(jahr, monat, tag) + timedelta(seconds=sekunde_from+299),
-        datetime(jahr, monat, tag) + timedelta(seconds=sekunde_to),
-        freq="300s", name="Timestamp")
-    len_dti = len(dti)
-    my_dict = dict(zip([i for i in originators], [np.zeros(len_dti) for i in originators]))
-    # df = pd.DataFrame({"toDrop": np.zeros(len(dti))}, index=dti)
-    df = pd.DataFrame(my_dict, index=dti)
-    return df
-
 
 def simple_filter_mp_column_in_measurement_data_12_21(mp_id, column_name_without_prefix, threshold, all_data):
     # no side effects
     aussortiere_zeilen = all_data[f"""R{mp_id}_{column_name_without_prefix}"""] >= threshold
     return aussortiere_zeilen
 
-
-def berechne_schalldruckpegel_von_verursacher_an_io_12_21(io: Immissionsort, mp: Messpunkt, ereignis: str, ausbreitungsfaktor_originator_zu_io, df, has_mete = True):
-    io_koordinaten = io.Koordinaten
-    mp_koordinaten = mp.Koordinaten
-    originator = str(mp.Id) + "_" + ereignis
-    logging.debug("Start")
-    if has_mete:
-        windkorrektur_io_originator = berechne_windkorrektur_05_21(io_koordinaten, mp_koordinaten, df)
-    else:
-        windkorrektur_io_originator = 0
-    schalldruckpegel_an_io_von_originator = df[f"{originator}_rechenwert"]\
-                                    + windkorrektur_io_originator + ausbreitungsfaktor_originator_zu_io
-    logging.debug(schalldruckpegel_an_io_von_originator)
-    return schalldruckpegel_an_io_von_originator
 
 
 def berechne_hoechste_lautstaerke_an_io_12_21(io: Immissionsort, mp: Messpunkt, ausbreitungsfaktor_originator_zu_io: float, df, has_mete=False):
@@ -75,13 +48,6 @@ def berechne_schallleistungpegel_an_mp_12_21(mp, df, korrekturfaktor):
     # result = 10*math.log10(np.power(10, 0.1*df[f"""R{mp}_LAFmax"""]).mean())
     # logging.debug(f"schallleistungpegel {result} resulting in {result + korrekturfaktor}")
     return result_df
-
-### DEPRECATED
-def berechne_beurteilungspegel_von_verursacher_an_io_12_21(io, originator, df, rechenwert_verwertbare_sekunden):
-    modifizierter_schalldruck = berechne_schalldruckpegel_von_verursacher_an_io_12_21(io, originator, df)
-    energie_aufsummiert = modifizierter_schalldruck.apply(lambda i: 10**(0.1*i)).cumsum()
-    beurteilungspegel_von_mp = (energie_aufsummiert/rechenwert_verwertbare_sekunden).apply(lambda i: 10*math.log10(i))
-    return beurteilungspegel_von_mp
 
 
 def berechne_beurteilungspegel_an_io_12_21(df, rechenwert_verwertbare_sekunden, io: Immissionsort):
@@ -410,243 +376,6 @@ def create_complete_df(resu: pd.DataFrame, terz, mete, has_mete=False, has_terz=
             return df_all_resu
 
 
-def create_df_with_rechenwerte(df, my_mps_data: list[Messpunkt]):
-    logging.debug(df)
-    ids_messpunkte = [mp.Id for mp in my_mps_data]
-    key_list = list(map(lambda j: f"""R{j}_LAFeq""", ids_messpunkte))
-    value_list = [(f"{e}_rechenwert", mp.Id) for mp in my_mps_data for e in mp.Ereignisse] # list(map(lambda j: f"""mp{j}_ohne_ereignis_rechenwert_auswertung""", ids_messpunkte))
-    # rename_dict = dict(zip(key_list, [v[0] for v in value_list]))
-    df_with_rechenwerte = df
-    print(df_with_rechenwerte)
-    for mp in my_mps_data:
-        for e in mp.Ereignisse:
-            if e == mp.column_lr:
-                df_with_rechenwerte[f"{mp.Id}_{e}_rechenwert"] =  df[f"R{mp.Id}_LAFeq"]
-            else:
-                df_with_rechenwerte[f"{mp.Id}_{e}_rechenwert"] = 0
-
-    print(df_with_rechenwerte)
-    return df_with_rechenwerte
-
-
-
-
-def werte_beurteilungszeitraum_aus(project: Projekt, zeitpunkt_im_zielzeitraum: datetime, has_mete = False, lafeq_gw=90, lafmax_gw = 100, use_terz_data = True):
-    # my_ios = [1, 5, 9, 15, 17]
-    if True:
-        year = zeitpunkt_im_zielzeitraum.year
-        month = zeitpunkt_im_zielzeitraum.month
-        day = zeitpunkt_im_zielzeitraum.day
-        seconds_start, seconds_end = get_interval_beurteilungszeitraum_from_datetime(zeitpunkt_im_zielzeitraum)
-        zugeordneter_beurteilungszeitraum = get_id_corresponding_beurteilungszeitraum(zeitpunkt_im_zielzeitraum)
-        logging.info(f"Beurteilungszeitraum: {zugeordneter_beurteilungszeitraum}")
-        logging.info(f"has_mete: {has_mete}")
-
-        my_ios: list[Immissionsort] = project.IOs
-        my_mps_data: list[Messpunkt] = project.MPs #[mp for mp in mps_mit_ereignissen if mp.id in [1, 2, 3, 4, 5, 6]]
-        abf_data= project.Ausbreitungsfaktoren
-
-        alle_verursacher = ["mp" + str(mp.Id) + "_" + erg for mp in my_mps_data for erg in mp.Ereignisse]
-        alle_verursacher.append("gesamt")
-
-        from_date = datetime(year, month, day) + timedelta(seconds=seconds_start)
-        to_date = datetime(year, month, day) + timedelta(seconds=seconds_end)
-
-        my_auswertungslauf = Auswertungslauf(from_date, project.name, zugeordneter_beurteilungszeitraum)
-
-        print(my_ios, my_mps_data, alle_verursacher)
-
-
-    if True:
-
-        my_ergebnis = erstelle_ergebnis_df(alle_verursacher, year, month, day, seconds_start, seconds_end, 1, my_mps_data)
-
-        try:
-            logging.info("Loading data...")
-            if use_terz_data:
-                terz = get_terz_all_mps(my_mps_data, from_date, to_date)
-            resu = get_resu_all_mps(my_mps_data, from_date, to_date)
-
-
-
-            
-            if has_mete:
-                mete = read_mete_data_v1(from_date, to_date)
-                if use_terz_data:
-                    data_as_one = create_complete_df(resu, terz, mete, has_mete)
-                else:
-                    data_as_one = create_complete_df(resu, [], mete, has_mete, False)
-            else:
-                if use_terz_data:
-                    data_as_one = create_complete_df(resu, terz, [], has_mete)
-                else:
-                    data_as_one = create_complete_df(resu, [], [], has_mete, False)
-
-            logging.info("Finished loading ")
-            print(data_as_one)
-            df_with_rechenwert = create_df_with_rechenwerte(data_as_one, my_mps_data)
-
-            # Filtern der Daten
-            my_auswertungslauf.no_verfuegbare_messwerte = len(df_with_rechenwert)
-            logging.info(f"Vor Filtern: {my_auswertungslauf.no_verfuegbare_messwerte}")
-            aussortierung_set = []
-            if has_mete:
-                ausortiert_by_windfilter = filter_wind_12_21(df_with_rechenwert)
-                df_with_rechenwert = df_with_rechenwert[-ausortiert_by_windfilter]
-                # my_results_filter["wind"] = [] #ausortiert_by_windfilter[ausortiert_by_windfilter]
-                aussortierung_set.append(Aussortiert(ausortiert_by_windfilter[ausortiert_by_windfilter],"wind", None))
-                logging.debug(f"Nach Windfilter: {len(df_with_rechenwert)}")
-                ausortiert_by_regen = filter_regen_12_21(df_with_rechenwert)
-                df_with_rechenwert = df_with_rechenwert[-ausortiert_by_regen]
-                # my_results_filter["regen"] = [] #ausortiert_by_regen[ausortiert_by_regen]
-                aussortierung_set.append(Aussortiert(ausortiert_by_regen[ausortiert_by_regen],"regen", None))
-                logging.debug(f"Nach Regenfilter: {len(df_with_rechenwert)}")
-            for mp in my_mps_data:
-                aussortiert_by_simple_filter = simple_filter_mp_column_in_measurement_data_12_21(mp.Id, "LAFeq", lafeq_gw, df_with_rechenwert)
-                df_with_rechenwert = df_with_rechenwert[-aussortiert_by_simple_filter]
-                aussortierung_set.append(Aussortiert(aussortiert_by_simple_filter[aussortiert_by_simple_filter], "lafeq", mp))
-
-                aussortiert_by_simple_filter = simple_filter_mp_column_in_measurement_data_12_21(mp.Id, "LAFmax", lafmax_gw, df_with_rechenwert)
-                df_with_rechenwert = df_with_rechenwert[-aussortiert_by_simple_filter]
-                aussortierung_set.append(Aussortiert(aussortiert_by_simple_filter[aussortiert_by_simple_filter], "lafmax", mp))
-                if "Zug" in mp.Filter:
-                    logging.info(f"Vor Zugfilter: {len(df_with_rechenwert)}")
-                    if False:
-                        aussortiert_by_zugfilter = filter_zug(mp.Id, df_with_rechenwert)
-                        df_with_rechenwert = df_with_rechenwert[-aussortiert_by_zugfilter]
-                        print(f"Nach Zugfilter: {len(df_with_rechenwert)}")
-                        aussortierung_set.append(Aussortiert(aussortiert_by_zugfilter[aussortiert_by_zugfilter], "zug", mp))
-                    if False:
-
-                        detections = filter_zug_v2(mp.Id, df_with_rechenwert)
-                        for d in detections:
-                            d: Detected
-                            aussortierung_set.append(Aussortiert(df_with_rechenwert.loc[(df_with_rechenwert.index >= d.start) & (df_with_rechenwert.index <= d.end)].index.to_series(), "Zug_V2", mp))
-                            df_with_rechenwert = df_with_rechenwert.loc[(df_with_rechenwert.index < d.start) | (df_with_rechenwert.index > d.end)]
-                        
-                    if True:
-                        detections = filter_zug_v3(mp.Id, df_with_rechenwert)
-                        for d in detections:
-                            d: Detected
-                            aussortierung_set.append(Aussortiert(df_with_rechenwert.loc[(df_with_rechenwert.index >= d.start) & (df_with_rechenwert.index <= d.end)].index.to_series(), "Zug_V2", mp))
-                            df_with_rechenwert = df_with_rechenwert.loc[(df_with_rechenwert.index < d.start) | (df_with_rechenwert.index > d.end)]
-                    logging.info(f"Nach Zugfilter: {len(df_with_rechenwert)}")
-                if use_terz_data:
-                    aussortiert_by_vogelfilter = filter_vogel_12_21(mp.Id, df_with_rechenwert)
-                    logging.debug(f"aussortiert_by_vogelfilter {aussortiert_by_vogelfilter}")
-                    df_with_rechenwert = df_with_rechenwert[aussortiert_by_vogelfilter]
-                    # my_results_filter[f"vogelMp{mp.id}"] = [] # aussortiert_by_vogelfilter[-aussortiert_by_vogelfilter]
-                    aussortierung_set.append(Aussortiert(aussortiert_by_vogelfilter[-aussortiert_by_vogelfilter], "vogel", mp))
-                    modifizierte_pegel_wegen_grillen = find_and_modify_grillen(mp.Id, df_with_rechenwert)
-
-                    df_with_rechenwert.loc[
-                        modifizierte_pegel_wegen_grillen.index, f"""{mp.Id}_{mp.column_lr}"""]\
-                        = modifizierte_pegel_wegen_grillen
-                    logging.debug(modifizierte_pegel_wegen_grillen)
-                    aussortierung_set.append(Aussortiert(modifizierte_pegel_wegen_grillen, "grille", mp))
-
-            
-            anzahl_verwertbare_sekunden, sample_size_filtered_df, aussortiert_wegen_sample_size = berechne_verwertbare_sekunden(df_with_rechenwert)
-            logging.debug(f"aussortiert_wegen_sample_size: {aussortiert_wegen_sample_size}")
-            aussortierung_set.append(Aussortiert(aussortiert_wegen_sample_size.index.to_series(), "zu wenige messwerte", None))
-            df_with_rechenwert = sample_size_filtered_df
-            my_auswertungslauf.no_gewertete_messwerte = anzahl_verwertbare_sekunden
-            my_auswertungslauf.no_verwertbare_messwerte = len(df_with_rechenwert)
-
-            beurteilungspegel_set = {}
-            lautestestunde_set = []
-
-
-            if anzahl_verwertbare_sekunden == 0:
-                logging.warning("Keine Verwertbaren Sekunden")
-                for io in my_ios:
-                    for el in alle_verursacher:
-                        beurteilungspegel_set[f"{io.Id}"] = my_ergebnis[el].to_frame()
-                my_auswertungslauf.beurteilungspegel_set = beurteilungspegel_set
-                my_auswertungslauf.erkennung_set = []
-                my_auswertungslauf.aussortierung_set = aussortierung_set
-                my_auswertungslauf.lautestestunde_set = []
-                my_auswertungslauf.schallleistungspegel_set = []
-                return my_auswertungslauf
-            erkennung_set = []
-            for mp in my_mps_data:
-                if "vorbeifahrt" in mp.Ereignisse:
-                    e = "vorbeifahrt"
-                    vorbeifahrten_an_mp = find_vorbeifahrt_mp_5_immendingen(mp, df_with_rechenwert)
-                    for i in vorbeifahrten_an_mp:
-                        erkennung_set.append(i)
-
-                    
-                    vorbeifahrten_an_mp_indicator_series = \
-                        create_indicator_vorbeifahrt(
-                            df_with_rechenwert, vorbeifahrten_an_mp
-                        )
-                    df_with_rechenwert[f"{mp.Id}_{e}"] = df_with_rechenwert[f"{mp.Id}_{mp.column_lr}"]
-                    df_with_rechenwert.loc[vorbeifahrten_an_mp_indicator_series, f"{mp.Id}_{mp.column_lr}"] = 0
-                    df_with_rechenwert.loc[-vorbeifahrten_an_mp_indicator_series, f"{mp.Id}_{e}"] = 0
-            schallleistungspegel_set = []
-            for mp in my_mps_data:
-                schallleistungspegel = berechne_schallleistungpegel_an_mp_12_21(
-                    mp.Id, df_with_rechenwert, mp.LWA
-                )     
-                for idx, val in schallleistungspegel.iteritems():
-                    corresponding_date = datetime(year, month, day) + timedelta(hours=idx)
-                    schallleistungspegel_set.append(Schallleistungspegel(val, corresponding_date , mp))
-            
-            for io in my_ios:
-                # anzahl_verwertbare_sekunden = berechne_verwertbare_sekunden(df_with_rechenwert)
-                schalldruckpegel_von_verursacher = {}
-                lautstaerke_von_verursacher = {}
-                
-                for mp in my_mps_data:
-                    for ereignis in mp.Ereignisse:
-                        originator = "mp" + str(mp.Id) + "_" + ereignis
-                        # schalldruckpegel_von_verursacher[f"df_schalldruckpegel_von_{originator}"] = \
-                        schalldruckpegel_von_verursacher[f"{originator}"] = \
-                            berechne_schalldruckpegel_von_verursacher_an_io_12_21(io, mp, ereignis, abf_data[(io.Id, mp.Id)], df_with_rechenwert, has_mete=has_mete)
-                        logging.debug("Schalldruckpegel from each verursacher")
-                    lautstaerke_von_verursacher[f"{mp.Id}"] = \
-                        berechne_hoechste_lautstaerke_an_io_12_21(io, mp, abf_data[(io.Id, mp.Id)], df_with_rechenwert, has_mete=has_mete)
-
-                df_lauteste_stunde_io_von_mp = pd.DataFrame(lautstaerke_von_verursacher)
-                arg_max_index_lautstaerke_io = df_lauteste_stunde_io_von_mp.max(axis=1).idxmax()
-                arg_max_column_lautstaerke_io = \
-                    df_lauteste_stunde_io_von_mp.loc[arg_max_index_lautstaerke_io, :].idxmax()
-                # my_results_lauteste_stunde[f"io{io.id}"] = (arg_max_column_lautstaerke_io, arg_max_column_lautstaerke_io, df_lauteste_stunde_io_von_mp.loc[arg_max_index_lautstaerke_io, arg_max_column_lautstaerke_io])
-                logging.info(f"Lautester Zeitpunkt: {arg_max_index_lautstaerke_io} mit Pegel: {df_lauteste_stunde_io_von_mp.loc[arg_max_index_lautstaerke_io, arg_max_column_lautstaerke_io]}")
-
-                lautestestunde_set.append(LautesteStunde(df_lauteste_stunde_io_von_mp.loc[arg_max_index_lautstaerke_io, arg_max_column_lautstaerke_io], arg_max_index_lautstaerke_io, io))
-
-                df_schalldruckpegel_from_each_verursacher = pd.DataFrame(schalldruckpegel_von_verursacher)
-                logging.debug(f"df_schalldruckpegel_from_each_verursacher: {df_schalldruckpegel_from_each_verursacher}")
-                beurteilungspegel_an_io = berechne_beurteilungspegel_an_io_12_21(
-                    df_schalldruckpegel_from_each_verursacher, anzahl_verwertbare_sekunden, io)
-                end_result_with_additional_column = my_ergebnis.join(beurteilungspegel_an_io, how="left", lsuffix="_to_be_dropped").fillna(method='ffill')
-                end_result = end_result_with_additional_column.drop([f"{el}_to_be_dropped" for el in alle_verursacher], axis=1).fillna(-100)
-                logging.debug(f"my_ergebnis an io {io}: {my_ergebnis}")
-                logging.debug(f"ergebnis io {io.Id}: {end_result}")
-                for index, row in end_result.iterrows():
-                    beurteilungspegel_set[f"{io.Id}"] = end_result
-                logging.info(f"Lr an {io.Id}: {end_result.iloc[-1,:]}")
-            my_auswertungslauf.beurteilungspegel_set = beurteilungspegel_set
-            my_auswertungslauf.erkennung_set = erkennung_set
-            my_auswertungslauf.aussortierung_set = aussortierung_set
-            my_auswertungslauf.lautestestunde_set = lautestestunde_set
-            my_auswertungslauf.schallleistungspegel_set = schallleistungspegel_set
-            logging.info("Evaluation finsihed")
-            return my_auswertungslauf
-        except Exception as ex:
-            logging.exception(ex)
-            raise ex
-
-
-def berechne_lr_pegel_an_io(df_rechenwerte):
-    df_rechenwerte_five_minute_vals = df_rechenwerte.cumsum().resample('5min', label='right').max()
-    from_date = datetime(2022, 10, 17, 6, 0, 0)
-    to_date = datetime(2022, 10, 17, 21, 59, 59)
-    dti = pd.date_range(from_date + timedelta(seconds=299), to_date, freq="300s", name="Timestamp")
-    print(df_rechenwerte_five_minute_vals)
-
 
 def foo_immendingen_vorbeifahrt_erkennung(from_date, to_date, pegel_col: pd.Series, name_vorbeifahrt_col):
     total_number_seconds = int((to_date-from_date).total_seconds()) + 1
@@ -769,11 +498,11 @@ def create_rechenwert_column(column: pd.Series, new_name: str):
 
 def load_data(from_date, to_date, my_mps_data, use_terz_data=True, has_mete=True):
     if use_terz_data:
-        terz = get_terz_all_mps(my_mps_data, from_date, to_date)
-        resu = get_resu_all_mps(my_mps_data, from_date, to_date)
+        terz = RandomMessdatenService.get_terz_all_mps(my_mps_data, from_date, to_date)
+        resu =RandomMessdatenService.get_resu_all_mps(my_mps_data, from_date, to_date)
 
     if has_mete:
-        mete = read_mete_data_v1(from_date, to_date)
+        mete = RandomMessdatenService.read_mete_data_v1(from_date, to_date)
         if use_terz_data:
             data_as_one = create_complete_df(resu, terz, mete, has_mete)
         else:
@@ -892,8 +621,8 @@ def filter_and_modify_data(my_mps_data: list[Messpunkt], all_data_df: pd.DataFra
     return messwerte_nach_filtern_df, s
 
 
-def get_project_via_rest() -> Projekt:
-    p = requests.get("http://localhost:8000/tsdb/projekt/")
+def get_project_via_rest(name: str) -> Projekt:
+    p = requests.get(f"http://localhost:8000/tsdb/projekt/?name__icontains={name}")
     p.raise_for_status()
     projekt_json = p.json()
     
@@ -907,7 +636,7 @@ def get_project_via_rest() -> Projekt:
     abfs = dict(zip([(a["immissionsort"], a["messpunkt"]) for a in abfs_json], [a["ausbreitungskorrektur"] for a in abfs_json]))
         
 
-    mps = [Messpunkt(mp_json['id_external'], Bezeichnung=mp_json['name'], Koordinaten=Koordinaten(mp_json["gk_rechts"], mp_json["gk_hoch"]), Ereignisse=[e["name"] for e in mp_json["laermursacheanmesspunkt_set"]] ) for mp_json in projekt_json[idx]['messpunkt_set']]
+    mps = [Messpunkt(mp_json['id_external'], Bezeichnung=mp_json['name'], Koordinaten=Koordinaten(mp_json["gk_rechts"], mp_json["gk_hoch"]), id_in_db=mp_json["id"], Ereignisse=[e["name"] for e in mp_json["laermursacheanmesspunkt_set"]] ) for mp_json in projekt_json[idx]['messpunkt_set']]
     
     ios = [Immissionsort(io_json['id_external'], Bezeichnung=io_json["name"], Koordinaten=Koordinaten(io_json["gk_rechts"], io_json["gk_hoch"]), id_in_db=io_json["id"]) for io_json in projekt_json[idx]['immissionsort_set']]
     for mp in mps:
@@ -930,7 +659,7 @@ def bestimme_rechenwert_verwertbare_sekunden(messwerte_nach_filtern_df):
     return verwertbare_messwerte_df, anzahl_verwertbare_sekunden
 
 
-def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime):
+def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime, project_name: str):
     
     from_date,to_date = get_start_end_beurteilungszeitraum_from_datetime(datetime_in_beurteilungszeitraum)
 
@@ -941,7 +670,7 @@ def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime):
     if True:
         
         
-        p = get_project_via_rest()
+        p = get_project_via_rest(project_name)
 
         lrpegel_set = []
         maxpegel_set = []
