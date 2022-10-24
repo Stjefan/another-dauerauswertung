@@ -27343,3 +27343,108 @@ pytz.exceptions.UnknownTimeZoneError: 'Berlin'
 2022-10-24 16:58:34,839 django.utils.autoreload INFO     C:\Users\sts\Documents\GitHub\another-dauerauswertung\django_dauerauswertung\tsdb\models.py changed, reloading.
 2022-10-24 16:58:37,290 django.utils.autoreload INFO     Watching for file changes with StatReloader
 2022-10-24 17:00:58,231 django.utils.autoreload INFO     Watching for file changes with StatReloader
+2022-10-24 17:01:00,293 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-2\200-57045-20221024_16_45_00_L53699.SVL
+2022-10-24 17:01:00,294 root         DEBUG    Current queue: [Event(time=1666626587.6471264, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03910>>, argument=(), kwargs={})]
+2022-10-24 17:01:00,381 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-2\200-57045-20221024_16_45_00_L53699.SVL
+2022-10-24 17:01:00,381 root         DEBUG    Current queue: [Event(time=1666626587.6471264, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03910>>, argument=(), kwargs={})]
+2022-10-24 17:01:00,452 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-2\200-57045-20221024_16_45_00_L53699.CSV
+2022-10-24 17:01:00,453 root         DEBUG    Current queue: [Event(time=1666626587.6471264, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03910>>, argument=(), kwargs={})]
+2022-10-24 17:01:00,580 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-2\200-57045-20221024_16_45_00_L53699.CSV
+2022-10-24 17:01:00,580 root         DEBUG    Current queue: [Event(time=1666626587.6471264, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03910>>, argument=(), kwargs={})]
+2022-10-24 17:01:00,581 root         INFO     Process data of C:/upload/MB_Immendingen/mp-2\200-57045-20221024_16_45_00_L53699.CSV
+2022-10-24 17:01:00,581 root         INFO     C:/upload/MB_Immendingen/mp-2\200-57045-20221024_16_45_00_L53699.CSV
+2022-10-24 17:01:00,581 root         INFO     In from_file_with_mete_2_df
+2022-10-24 17:01:09,568 root         INFO     Data successfully processed
+2022-10-24 17:01:51,276 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-6\200-57077-20221024_16_45_00_L5842.SVL
+2022-10-24 17:01:51,276 root         DEBUG    Current queue: [Event(time=1666626587.6521401, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0C5E0>>, argument=(), kwargs={})]
+2022-10-24 17:01:51,368 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-6\200-57077-20221024_16_45_00_L5842.SVL
+2022-10-24 17:01:51,368 root         DEBUG    Current queue: [Event(time=1666626587.6521401, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0C5E0>>, argument=(), kwargs={})]
+2022-10-24 17:01:51,435 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-6\200-57077-20221024_16_45_00_L5842.CSV
+2022-10-24 17:01:51,435 root         DEBUG    Current queue: [Event(time=1666626587.6521401, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0C5E0>>, argument=(), kwargs={})]
+2022-10-24 17:01:51,571 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-6\200-57077-20221024_16_45_00_L5842.CSV
+2022-10-24 17:01:51,571 root         DEBUG    Current queue: [Event(time=1666626587.6521401, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0C5E0>>, argument=(), kwargs={})]
+2022-10-24 17:01:51,572 root         INFO     Process data of C:/upload/MB_Immendingen/mp-6\200-57077-20221024_16_45_00_L5842.CSV
+2022-10-24 17:01:51,572 root         INFO     C:/upload/MB_Immendingen/mp-6\200-57077-20221024_16_45_00_L5842.CSV
+2022-10-24 17:01:54,140 root         INFO     Data successfully processed
+2022-10-24 17:01:59,608 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/DT_MA/mp-2\200-57011-20221024_16_45_00_L15865.SVL
+2022-10-24 17:01:59,609 root         DEBUG    Current queue: [Event(time=1666626587.6701858, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0CCD0>>, argument=(), kwargs={})]
+2022-10-24 17:01:59,692 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/DT_MA/mp-2\200-57011-20221024_16_45_00_L15865.SVL
+2022-10-24 17:01:59,693 root         DEBUG    Current queue: [Event(time=1666626587.6701858, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0CCD0>>, argument=(), kwargs={})]
+2022-10-24 17:01:59,911 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/DT_MA/mp-2\200-57011-20221024_16_45_00_L15865.CSV
+2022-10-24 17:01:59,911 root         DEBUG    Current queue: [Event(time=1666626587.6701858, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0CCD0>>, argument=(), kwargs={})]
+2022-10-24 17:02:00,013 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/DT_MA/mp-2\200-57011-20221024_16_45_00_L15865.CSV
+2022-10-24 17:02:00,014 root         DEBUG    Current queue: [Event(time=1666626587.6701858, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0CCD0>>, argument=(), kwargs={})]
+2022-10-24 17:02:00,014 root         INFO     Process data of C:/upload/DT_MA/mp-2\200-57011-20221024_16_45_00_L15865.CSV
+2022-10-24 17:02:00,014 root         INFO     C:/upload/DT_MA/mp-2\200-57011-20221024_16_45_00_L15865.CSV
+2022-10-24 17:02:03,117 root         INFO     Data successfully processed
+2022-10-24 17:02:12,781 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-5\200-57062-20221024_16_45_00_L47583.SVL
+2022-10-24 17:02:12,781 root         DEBUG    Current queue: [Event(time=1666626587.6511369, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FEA30>>, argument=(), kwargs={})]
+2022-10-24 17:02:12,865 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-5\200-57062-20221024_16_45_00_L47583.SVL
+2022-10-24 17:02:12,865 root         DEBUG    Current queue: [Event(time=1666626587.6511369, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FEA30>>, argument=(), kwargs={})]
+2022-10-24 17:02:12,931 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-5\200-57062-20221024_16_45_00_L47583.CSV
+2022-10-24 17:02:12,932 root         DEBUG    Current queue: [Event(time=1666626587.6511369, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FEA30>>, argument=(), kwargs={})]
+2022-10-24 17:02:13,059 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-5\200-57062-20221024_16_45_00_L47583.CSV
+2022-10-24 17:02:13,060 root         DEBUG    Current queue: [Event(time=1666626587.6511369, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FEA30>>, argument=(), kwargs={})]
+2022-10-24 17:02:13,060 root         INFO     Process data of C:/upload/MB_Immendingen/mp-5\200-57062-20221024_16_45_00_L47583.CSV
+2022-10-24 17:02:13,061 root         INFO     C:/upload/MB_Immendingen/mp-5\200-57062-20221024_16_45_00_L47583.CSV
+2022-10-24 17:02:15,879 root         INFO     Data successfully processed
+2022-10-24 17:02:35,868 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-1\200-57044-20221024_16_45_00_L70888.SVL
+2022-10-24 17:02:35,869 root         DEBUG    Current queue: [Event(time=1666626587.6451213, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03D00>>, argument=(), kwargs={})]
+2022-10-24 17:02:35,956 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-1\200-57044-20221024_16_45_00_L70888.SVL
+2022-10-24 17:02:35,961 root         DEBUG    Current queue: [Event(time=1666626587.6451213, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03D00>>, argument=(), kwargs={})]
+2022-10-24 17:02:36,014 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-1\200-57044-20221024_16_45_00_L70888.CSV
+2022-10-24 17:02:36,014 root         DEBUG    Current queue: [Event(time=1666626587.6451213, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03D00>>, argument=(), kwargs={})]
+2022-10-24 17:02:36,118 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-1\200-57044-20221024_16_45_00_L70888.CSV
+2022-10-24 17:02:36,121 root         DEBUG    Current queue: [Event(time=1666626587.6451213, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03D00>>, argument=(), kwargs={})]
+2022-10-24 17:02:36,132 root         INFO     Process data of C:/upload/MB_Immendingen/mp-1\200-57044-20221024_16_45_00_L70888.CSV
+2022-10-24 17:02:36,133 root         INFO     C:/upload/MB_Immendingen/mp-1\200-57044-20221024_16_45_00_L70888.CSV
+2022-10-24 17:02:39,079 root         INFO     Data successfully processed
+2022-10-24 17:02:57,658 root         INFO     Still watching in iteration 2...
+2022-10-24 17:03:23,580 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-3\200-57046-20221024_16_45_00_L42484.SVL
+2022-10-24 17:03:23,581 root         DEBUG    Current queue: [Event(time=1666626587.6481295, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39F3D30>>, argument=(), kwargs={})]
+2022-10-24 17:03:23,678 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-3\200-57046-20221024_16_45_00_L42484.SVL
+2022-10-24 17:03:23,678 root         DEBUG    Current queue: [Event(time=1666626587.6481295, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39F3D30>>, argument=(), kwargs={})]
+2022-10-24 17:03:23,738 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-3\200-57046-20221024_16_45_00_L42484.CSV
+2022-10-24 17:03:23,738 root         DEBUG    Current queue: [Event(time=1666626587.6481295, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39F3D30>>, argument=(), kwargs={})]
+2022-10-24 17:03:23,862 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-3\200-57046-20221024_16_45_00_L42484.CSV
+2022-10-24 17:03:23,863 root         DEBUG    Current queue: [Event(time=1666626587.6481295, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39F3D30>>, argument=(), kwargs={})]
+2022-10-24 17:03:23,864 root         INFO     Process data of C:/upload/MB_Immendingen/mp-3\200-57046-20221024_16_45_00_L42484.CSV
+2022-10-24 17:03:23,864 root         INFO     C:/upload/MB_Immendingen/mp-3\200-57046-20221024_16_45_00_L42484.CSV
+2022-10-24 17:03:27,502 root         INFO     Data successfully processed
+2022-10-24 17:05:42,486 root         DEBUG    Callback svantek-File-Watcher: created, C:/upload/MB_Immendingen/mp-4\200-57059-20221019_12_17_56_R28312.WAV
+2022-10-24 17:05:42,486 root         DEBUG    Current queue: [Event(time=1666626587.6501346, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FE160>>, argument=(), kwargs={})]
+2022-10-24 17:05:42,705 root         DEBUG    Callback svantek-File-Watcher: modified, C:/upload/MB_Immendingen/mp-4\200-57059-20221019_12_17_56_R28312.WAV
+2022-10-24 17:05:42,706 root         DEBUG    Current queue: [Event(time=1666626587.6501346, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FE160>>, argument=(), kwargs={})]
+2022-10-24 17:06:43,483 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/DT_MA/mp-2\200-57011-20221024_16_45_00_L15865.SVL
+2022-10-24 17:06:43,484 root         DEBUG    Current queue: [Event(time=1666626587.6701858, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0CCD0>>, argument=(), kwargs={})]
+2022-10-24 17:06:44,017 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/DT_MA/mp-2\200-57011-20221024_16_45_00_L15865.CSV
+2022-10-24 17:06:44,017 root         DEBUG    Current queue: [Event(time=1666626587.6701858, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0CCD0>>, argument=(), kwargs={})]
+2022-10-24 17:06:45,294 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-6\200-57077-20221024_16_45_00_L5842.SVL
+2022-10-24 17:06:45,294 root         DEBUG    Current queue: [Event(time=1666626587.6521401, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0C5E0>>, argument=(), kwargs={})]
+2022-10-24 17:06:45,921 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-6\200-57077-20221024_16_45_00_L5842.CSV
+2022-10-24 17:06:45,921 root         DEBUG    Current queue: [Event(time=1666626587.6521401, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A0C5E0>>, argument=(), kwargs={})]
+2022-10-24 17:07:11,792 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-5\200-57062-20221024_16_45_00_L47583.SVL
+2022-10-24 17:07:11,793 root         DEBUG    Current queue: [Event(time=1666626587.6511369, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FEA30>>, argument=(), kwargs={})]
+2022-10-24 17:07:12,942 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-5\200-57062-20221024_16_45_00_L47583.CSV
+2022-10-24 17:07:12,942 root         DEBUG    Current queue: [Event(time=1666626587.6511369, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FEA30>>, argument=(), kwargs={})]
+2022-10-24 17:07:13,057 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-4\200-57059-20221019_12_15_00_L69907.SVL
+2022-10-24 17:07:13,058 root         DEBUG    Current queue: [Event(time=1666626587.6501346, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FE160>>, argument=(), kwargs={})]
+2022-10-24 17:07:13,073 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-4\200-57059-20221019_12_12_08_R28311.WAV
+2022-10-24 17:07:13,073 root         DEBUG    Current queue: [Event(time=1666626587.6501346, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FE160>>, argument=(), kwargs={})]
+2022-10-24 17:07:13,075 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-4\200-57059-20221019_12_17_56_R28312.WAV
+2022-10-24 17:07:13,075 root         DEBUG    Current queue: [Event(time=1666626587.6501346, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FE160>>, argument=(), kwargs={})]
+2022-10-24 17:07:14,123 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-4\200-57059-20221019_12_15_00_L69907.CSV
+2022-10-24 17:07:14,123 root         DEBUG    Current queue: [Event(time=1666626587.6501346, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39FE160>>, argument=(), kwargs={})]
+2022-10-24 17:07:14,255 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-3\200-57046-20221024_16_45_00_L42484.SVL
+2022-10-24 17:07:14,255 root         DEBUG    Current queue: [Event(time=1666626587.6481295, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39F3D30>>, argument=(), kwargs={})]
+2022-10-24 17:07:14,784 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-3\200-57046-20221024_16_45_00_L42484.CSV
+2022-10-24 17:07:14,785 root         DEBUG    Current queue: [Event(time=1666626587.6481295, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D39F3D30>>, argument=(), kwargs={})]
+2022-10-24 17:07:14,852 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-2\200-57045-20221024_16_45_00_L53699.SVL
+2022-10-24 17:07:14,852 root         DEBUG    Current queue: [Event(time=1666626587.6471264, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03910>>, argument=(), kwargs={})]
+2022-10-24 17:07:15,848 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-2\200-57045-20221024_16_45_00_L53699.CSV
+2022-10-24 17:07:15,848 root         DEBUG    Current queue: [Event(time=1666626587.6471264, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03910>>, argument=(), kwargs={})]
+2022-10-24 17:07:15,943 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-1\200-57044-20221024_16_45_00_L70888.SVL
+2022-10-24 17:07:15,953 root         DEBUG    Current queue: [Event(time=1666626587.6451213, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03D00>>, argument=(), kwargs={})]
+2022-10-24 17:07:16,699 root         DEBUG    Callback svantek-File-Watcher: deleted, C:/upload/MB_Immendingen/mp-1\200-57044-20221024_16_45_00_L70888.CSV
+2022-10-24 17:07:16,700 root         DEBUG    Current queue: [Event(time=1666626587.6451213, priority=1, action=<bound method PrcoessFileEventHandler.check_is_alive of <scripts.file_watch.PrcoessFileEventHandler object at 0x00000204D3A03D00>>, argument=(), kwargs={})]
+2022-10-24 17:07:57,659 root         INFO     Still watching in iteration 3...
