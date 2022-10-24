@@ -17,24 +17,27 @@ from constants import get_start_end_beurteilungszeitraum_from_datetime
 app_name = "tsdb"
 
 def delete_old_data_via_psycopg2(cursor, id_old_auswertungslauf, from_date, to_date):
-    for tbl in ["lrpegel", "rejected", "detected", "schallleistungpegel", "maxpegel"]:
-        q1 = f"""
-                DELETE FROM {app_name}_{tbl} WHERE time >= '{from_date}' and time <= '{to_date}' and berechnet_von_id = {id_old_auswertungslauf};
-                """
+    if True:
+        for tbl in ["lrpegel", "rejected", "detected", "schallleistungpegel", "maxpegel"]:
+            q1 = f"""
+                    DELETE FROM {app_name}_{tbl} WHERE time >= '{from_date}' and time <= '{to_date}' and berechnet_von_id = {id_old_auswertungslauf};
+                    """
+            
+            cursor.execute(q1)
+            print(q1)
+            if False:
+                q2 = f"SELECT drop_chunks('{app_name}_{tbl}', '{to_date + timedelta(hours=0)}', '{from_date + timedelta(hours=-0)}');"
                 
-        cursor.execute(q1)
+                print(q2)
+                cursor.execute(q2)
+        q1 = f"""DELETE FROM {app_name}_Auswertungslauf WHERE id = {id_old_auswertungslauf}"""
         print(q1)
-        q2 = f"SELECT drop_chunks('{app_name}_{tbl}', '{from_date + timedelta(days=+1)}', '{to_date + timedelta(days=-1)}');"
-        cursor.execute(q2)
-        print(q2)
-    q1 = f"""DELETE FROM {app_name}_Auswertungslauf WHERE id = {id_old_auswertungslauf}"""
-    print(q1)
     # SELECT set_chunk_time_interval('tsdb_lrpegel', INTERVAL '1 hours');
     cursor.execute(q1)
     
 
-def get_id_old_auswertungslauf(cursor, from_date, to_date):
-    q = f"""SELECT id FROM {app_name}_Auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum  >= '{from_date}' and zeitpunkt_im_beurteilungszeitraum <= '{to_date}'"""
+def get_id_old_auswertungslauf(cursor, zuordnung, from_date, to_date):
+    q = f"""SELECT id FROM {app_name}_Auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum  >= '{from_date}' and zeitpunkt_im_beurteilungszeitraum <= '{to_date}' and zuordnung_id = {zuordnung}"""
     cursor.execute(q)
     
     result = cursor.fetchone()
@@ -54,7 +57,6 @@ def insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis: Ergebnisse)
         """
     cursor.execute(q)
     new_row_id = cursor.fetchone()
-<<<<<<< HEAD
     lr_arr = [[i.time.isoformat(), i.pegel, i.immissionsort, i.verursacht, new_row_id] for i in ergebnis.lrpegel_set]
     rejected_set = [[i.time.isoformat(), i.grund, i.messpunkt, new_row_id] for i in ergebnis.rejected_set]
     detected_set = [[i.time.isoformat(), i.duration, i.messpunkt, 1, new_row_id] for i in ergebnis.detected_set]
@@ -73,13 +75,6 @@ def insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis: Ergebnisse)
             maxpegel_set.append([time, 10, 1, new_row_id[0]])
             # schallleistungspegel_set.append({"a": time, "b": 1, "c": 1, "d": new_row_id[0]})
             schallleistungspegel_set.append([time, 1, 1, new_row_id[0]])
-=======
-    lr_arr = [[i.time.isoformat(), i.pegel, i.verursacht, i.immissionsort, new_row_id] for i in ergebnis.lrpegel_set]
-    rejected_set = [[i.time.isoformat(), i.grund, 1, new_row_id] for i in ergebnis.rejected_set]
-    detected_set = []
-    maxpegel_set = [[i.time.isoformat(), i.pegel, i.id_immissionsort, new_row_id] for i in ergebnis.maxpegel_set]
-    schallleistungspegel_set = [[i.time.isoformat(), i.pegel, i.id_messpunkt, new_row_id] for i in ergebnis.schallleistungspegel_set]
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
 
 
     execute_values(cursor, """INSERT INTO tsdb_lrpegel (time, pegel, immissionsort_id, verursacht_id, berechnet_von_id) VALUES %s""", lr_arr)
@@ -96,7 +91,7 @@ def insert_auswertung_via_psycopg2(time, ergebnis: Ergebnisse):
     
     from_date, to_date = get_start_end_beurteilungszeitraum_from_datetime(time)
 
-    delete_old_data_via_psycopg2(cursor, get_id_old_auswertungslauf(cursor, from_date, to_date), from_date, to_date)
+    delete_old_data_via_psycopg2(cursor, get_id_old_auswertungslauf(cursor, ergebnis.zuordnung, from_date, to_date), from_date, to_date)
     insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis)
     conn.commit()
     

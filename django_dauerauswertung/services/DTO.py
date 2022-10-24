@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from datetime import datetime
-from typing import Optional
 
 
 from pandas import Series, DataFrame
@@ -59,15 +58,7 @@ class Messpunkt:
     Filter: list[str] = field(default_factory=list)
     OrdnerMessdaten: str = ""
     column_lr: str = "N/A"
-<<<<<<< HEAD
     id_in_db: int = 0
-=======
-    id_in_db: Optional[int] = None
-    
-    def __post_init__(self):
-        if self.id_in_db is None:
-            self.id_in_db = self.Id
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
     
     
 
@@ -106,31 +97,14 @@ class DTO_LrPegel:
     immissionsort: int
 
 @dataclass
-class DTO_MaxPegel:
-    time: datetime
-    pegel: float
-    id_immissionsort: int
-
-@dataclass
-class DTO_SchallleistungPegel:
-    time: datetime
-    pegel: float
-    id_messpunkt: int
-
-@dataclass
 class DTO_Rejected:
     time: datetime
     grund: int
-<<<<<<< HEAD
     messpunkt: int = 2
-=======
-    id_messpunkt: int
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
 
 @dataclass
 class DTO_Detected:
     time: datetime
-<<<<<<< HEAD
     duration: int
     messpunkt: int
 
@@ -145,10 +119,6 @@ class DTO_Schallleistungpegel:
     time: datetime
     pegel: float
     messpunkt: int
-=======
-    dauer: int
-    id_messpunkt: int
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
 
 @dataclass
 class Ergebnisse:
@@ -160,15 +130,9 @@ class Ergebnisse:
     detected_set: list[DTO_Detected]
     lrpegel_set: list[DTO_LrPegel]
     rejected_set: list[DTO_Rejected]
-<<<<<<< HEAD
     maxpegel_set: list[DTO_Maxpegel]
-    schallleistungspegel_set: list
-    zuordnung: list[DTO_Schallleistungpegel]
-=======
-    maxpegel_set: list[DTO_MaxPegel]
-    schallleistungspegel_set: list[DTO_SchallleistungPegel]
+    schallleistungspegel_set: list[DTO_Schallleistungpegel]
     zuordnung: int
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
 
 
 

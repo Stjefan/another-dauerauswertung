@@ -1,4 +1,5 @@
-from email.policy import default
+
+from datetime import datetime
 from django.db import models
 import logging
 
@@ -141,29 +142,34 @@ class Mete(TimescaleModel):
 
 
 
-class LrPegel(TimescaleModel):
+class LrPegel(models.Model):
+    time = models.DateTimeField()
     immissionsort = models.ForeignKey(Immissionsort, on_delete=models.CASCADE, null=True, blank=True)
     verursacht = models.ForeignKey(LaermursacheAnImmissionsorten, on_delete=models.CASCADE, null=True, blank=True)
     pegel = models.FloatField()
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
-class MaxPegel(TimescaleModel):
+class MaxPegel(models.Model):
+    time = models.DateTimeField()
     immissionsort = models.ForeignKey(Immissionsort, on_delete=models.CASCADE, null=True, blank=True)
     pegel = models.FloatField()
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
-class SchallleistungPegel(TimescaleModel):
+class SchallleistungPegel(models.Model):
+    time = models.DateTimeField()
     messpunkt = models.ForeignKey(Messpunkt, on_delete=models.CASCADE, null=True, blank=True)
     pegel = models.FloatField()
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
-class Detected(TimescaleModel):
+class Detected(models.Model):
+    time = models.DateTimeField()
     messpunkt = models.ForeignKey(Messpunkt, on_delete=models.SET_NULL, null=True, blank=True)
     dauer = models.FloatField()
     typ = models.ForeignKey(Detection, on_delete=models.CASCADE, null=True, blank=True)
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
-class Rejected(TimescaleModel):
+class Rejected(models.Model):
+    time = models.DateTimeField()
     filter = models.ForeignKey(Rejection, on_delete=models.CASCADE, null=True, blank=True)
     messpunkt = models.ForeignKey(Messpunkt, on_delete=models.SET_NULL, null=True, blank=True)
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)

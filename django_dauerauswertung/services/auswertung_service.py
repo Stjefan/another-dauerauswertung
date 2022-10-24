@@ -6,12 +6,7 @@ import pandas as pd
 import numpy as np
 import requests
 
-<<<<<<< HEAD
 from DTO import (Projekt, Immissionsort, DTO_LrPegel, DTO_Rejected, DTO_Detected, DTO_Maxpegel, DTO_Schallleistungpegel,
-=======
-from DTO import (Projekt, Immissionsort, 
-DTO_LrPegel, DTO_Rejected, DTO_MaxPegel, DTO_Detected, DTO_SchallleistungPegel,
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
     Messpunkt, Auswertungslauf, Koordinaten, Detected, Vorbeifahrt, Aussortiert, Schallleistungspegel, LautesteStunde, Ergebnisse)
 from constants import get_interval_beurteilungszeitraum_from_datetime, get_id_corresponding_beurteilungszeitraum, terzfrequenzen, umrechnung_Z_2_A, get_start_end_beurteilungszeitraum_from_datetime
 
@@ -406,11 +401,7 @@ def berechne_schallleistungspegel_an_mp(mp: Messpunkt, pegel_an_mp_df: pd.DataFr
     schallleistungspegel = berechne_schallleistungpegel_an_mp_12_21(
                 mp.Id, pegel_an_mp_df, mp.LWA
             )
-<<<<<<< HEAD
     print("Schallleistungpegel:", schallleistungspegel) 
-=======
-    logging.info(f"Schallleistungspegel: {schallleistungspegel}")
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
     return schallleistungspegel
 
 def berechne_max_pegel_an_io(io: Immissionsort, lafmax_pegel_an_mps: pd.DataFrame, wind_data_df: pd.DataFrame,mps, abf_data, has_mete):
@@ -509,7 +500,7 @@ def create_rechenwert_column(column: pd.Series, new_name: str):
 
 
 def load_data(from_date, to_date, my_mps_data, use_terz_data=True, has_mete=True):
-    m = MessdatenServiceV3() # RandomMessdatenService()
+    m = RandomMessdatenService() # MessdatenServiceV3() # 
     if use_terz_data:
         terz = m.get_terz_all_mps(my_mps_data, from_date, to_date)
         resu =m.get_resu_all_mps(my_mps_data, from_date, to_date)
@@ -573,39 +564,33 @@ def filter_and_modify_data(my_mps_data: list[Messpunkt], all_data_df: pd.DataFra
 
     messwerte_nach_filtern_df = all_data_df
     logging.debug(f"Vor Filtern {len(messwerte_nach_filtern_df)}")
-    s1 = pd.Series(index=all_data_df.index, dtype="string")
+
+    s1 = pd.Series(index=all_data_df.index, dtype="int")
     s2 = pd.Series(index=all_data_df.index, dtype="int")
     filter_result_df = pd.DataFrame(data={"ursache": s1, "messpunkt_id": s2})
-    print(filter_result_df)
-    if has_mete:
-        ausortiert_by_windfilter = filter_wind_12_21(messwerte_nach_filtern_df)
-        s1.loc[ausortiert_by_windfilter[ausortiert_by_windfilter].index] = "wind"
-        filter_result_df.loc[ausortiert_by_windfilter[ausortiert_by_windfilter].index, :] = ["wind", my_mps_data[0].id_in_db]
-        
-        messwerte_nach_filtern_df = messwerte_nach_filtern_df[-ausortiert_by_windfilter]
 
+    if has_mete:
+        
+        ausortiert_by_windfilter = filter_wind_12_21(messwerte_nach_filtern_df)
+
+        messwerte_nach_filtern_df = messwerte_nach_filtern_df[-ausortiert_by_windfilter]
+        filter_result_df.loc[ausortiert_by_windfilter[ausortiert_by_windfilter].index, :] = [0, my_mps_data[0].id_in_db]
 
         logging.debug(f"Nach Windfilter: {len(messwerte_nach_filtern_df)}")
         ausortiert_by_regen = filter_regen_12_21(messwerte_nach_filtern_df)
         messwerte_nach_filtern_df = messwerte_nach_filtern_df[-ausortiert_by_regen]
-        s1.loc[ausortiert_by_regen[ausortiert_by_regen].index] = "regen"
-        filter_result_df.loc[ausortiert_by_regen[ausortiert_by_regen].index, :] = ["regen", my_mps_data[0].id_in_db]
-
+        filter_result_df.loc[ausortiert_by_regen[ausortiert_by_regen].index, :] = [1, my_mps_data[0].id_in_db]
         # my_results_filter["regen"] = [] #ausortiert_by_regen[ausortiert_by_regen]
         logging.debug(f"Nach Regenfilter: {len(messwerte_nach_filtern_df)}")
-
-    print("Filter-Zwischenergebnisse:", filter_result_df)
-    
     if True:
         for mp in my_mps_data:
             aussortiert_by_simple_filter = simple_filter_mp_column_in_measurement_data_12_21(mp.Id, "LAFeq", lafeq_gw, messwerte_nach_filtern_df)
             messwerte_nach_filtern_df = messwerte_nach_filtern_df[-aussortiert_by_simple_filter]
-            s1.loc[aussortiert_by_simple_filter[aussortiert_by_simple_filter].index] = "lafeq"
-            filter_result_df.loc[aussortiert_by_simple_filter[aussortiert_by_simple_filter].index, :] = ["lafeq", mp.id_in_db]
+            filter_result_df.loc[aussortiert_by_simple_filter[aussortiert_by_simple_filter].index, :] = [2, mp.id_in_db]
             aussortiert_by_simple_filter = simple_filter_mp_column_in_measurement_data_12_21(mp.Id, "LAFmax", lafmax_gw, messwerte_nach_filtern_df)
             messwerte_nach_filtern_df = messwerte_nach_filtern_df[-aussortiert_by_simple_filter]
-            s1.loc[aussortiert_by_simple_filter[aussortiert_by_simple_filter].index] = "lafmax"
-            filter_result_df.loc[aussortiert_by_simple_filter[aussortiert_by_simple_filter].index, :] = ["lafmax", mp.id_in_db]
+
+            filter_result_df.loc[aussortiert_by_simple_filter[aussortiert_by_simple_filter].index, :] = [3, mp.id_in_db]
             if False:
                 if "Zug" in mp.Filter:
                     logging.info(f"Vor Zugfilter: {len(messwerte_nach_filtern_df)}")
@@ -630,29 +615,21 @@ def filter_and_modify_data(my_mps_data: list[Messpunkt], all_data_df: pd.DataFra
                     logging.info(f"Nach Zugfilter: {len(messwerte_nach_filtern_df)}")
             if use_terz_data:
                 aussortiert_by_vogelfilter = filter_vogel_12_21(mp.Id, messwerte_nach_filtern_df)
-                logging.debug(f"aussortiert_by_vogelfilter {aussortiert_by_vogelfilter}")
+                
+                # logging.debug(f"aussortiert_by_vogelfilter {aussortiert_by_vogelfilter}")
                 messwerte_nach_filtern_df = messwerte_nach_filtern_df[aussortiert_by_vogelfilter]
-                s1.loc[aussortiert_by_vogelfilter[-aussortiert_by_vogelfilter].index] = "vogel"
-                filter_result_df.loc[aussortiert_by_vogelfilter[aussortiert_by_vogelfilter].index, :] = ["vogel", mp.id_in_db]
+                filter_result_df.loc[aussortiert_by_vogelfilter[-aussortiert_by_vogelfilter].index, :] = [4, mp.id_in_db]
                 # my_results_filter[f"vogelMp{mp.id}"] = [] # aussortiert_by_vogelfilter[-aussortiert_by_vogelfilter]
                 if True:
                     modifizierte_pegel_wegen_grillen = find_and_modify_grillen(mp.Id, messwerte_nach_filtern_df)
-<<<<<<< HEAD
-                    s.loc[modifizierte_pegel_wegen_grillen.index] = "grille"
-=======
-                    s1.loc[modifizierte_pegel_wegen_grillen[modifizierte_pegel_wegen_grillen].index] = "grille"
-                    filter_result_df.loc[modifizierte_pegel_wegen_grillen[modifizierte_pegel_wegen_grillen].index, :] = ["grille", mp.id_in_db]
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
+                    filter_result_df.loc[modifizierte_pegel_wegen_grillen.index, :] = [5, mp.id_in_db]
                     if True:
                         messwerte_nach_filtern_df.loc[
                             modifizierte_pegel_wegen_grillen.index, f"""R{mp.Id}_LAFeq"""]\
                             = modifizierte_pegel_wegen_grillen
                         logging.debug(modifizierte_pegel_wegen_grillen)
-    logging.debug(f'Aussortierte Sekunden: {s1[s1 != "<NA>"]}')
-    print("Filter-Ergebnisse:", filter_result_df)
-    aussortierte_sekunden_mit_grund_df = filter_result_df.dropna()
-
-    return messwerte_nach_filtern_df, aussortierte_sekunden_mit_grund_df
+    filter_result_df.dropna(inplace=True)
+    return messwerte_nach_filtern_df, filter_result_df
 
 
 def get_project_via_rest(name: str) -> Projekt:
@@ -717,17 +694,12 @@ def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime, p
 
         number_seconds_with_all_measurements = len(all_data_df)
 
-<<<<<<< HEAD
         filtered_and_modified_df, aussortierte_sekunden_mit_grund = filter_and_modify_data(p.MPs, all_data_df, p.has_mete_data)
         print("aussortierte_sekunden_mit_grund", aussortierte_sekunden_mit_grund)
-        for idx, val in aussortierte_sekunden_mit_grund.items():
-=======
-        filtered_and_modified_df, aussortierte_sekunden_mit_grund = filter_and_modify_data(p.MPs, all_data_df, True)
-
+        print("blub", aussortierte_sekunden_mit_grund[aussortierte_sekunden_mit_grund.isna()])
         for idx, row in aussortierte_sekunden_mit_grund.iterrows():
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
             rejected_set.append(
-                 DTO_Rejected(idx, 1, row["messpunkt_id"])
+                 DTO_Rejected(idx, row[0], row[1])
             )
 
         verwertbare_messwerte_df, rechenwert_verwertbare_sekunden = bestimme_rechenwert_verwertbare_sekunden(filtered_and_modified_df)
@@ -745,29 +717,16 @@ def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime, p
             
 
             for mp in p.MPs:
-<<<<<<< HEAD
                 schallleistungspegel_in_stunde = berechne_schallleistungspegel_an_mp(mp, verwertbare_messwerte_df)
-                for idx, row in schallleistungspegel_in_stunde.items():
-                    schallleistungspegel_set.append(DTO_Schallleistungpegel(datetime(from_date.year, from_date.month, from_date.day, idx, 0, 0, 0), row, mp.id_in_db))
-=======
-                schallleistungspegel = berechne_schallleistungspegel_an_mp(mp, verwertbare_messwerte_df)
-                schallleistungspegel_set.append(
-                 DTO_SchallleistungPegel(idx, 1, p.MPs[0].Id)
-            )
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
+                for idx, val in schallleistungspegel_in_stunde.items():
+                    schallleistungspegel_set.append(DTO_Schallleistungpegel(datetime(from_date.year, from_date.month, from_date.day, idx, 0, 0, 0), val, mp.id_in_db))
 
             
 
             for io in p.IOs:
                 zeitpunkt_maxpegel_an_io, ursache_maxpegel_an_io, maxpegel_an_io = berechne_max_pegel_an_io(io, verwertbare_messwerte_df, verwertbare_messwerte_df, p.MPs, p.Ausbreitungsfaktoren, p.has_mete_data)
                 print(ursache_maxpegel_an_io, zeitpunkt_maxpegel_an_io, maxpegel_an_io)
-<<<<<<< HEAD
                 maxpegel_set.append(DTO_Maxpegel(zeitpunkt_maxpegel_an_io, maxpegel_an_io, io.id_in_db))
-=======
-                maxpegel_set.append(
-                    DTO_MaxPegel(zeitpunkt_maxpegel_an_io, maxpegel_an_io, io.id_in_db)
-                )
->>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
                 
 
                 result_lr = berechne_pegel_an_io(from_date, to_date, io, laermursachen_an_messpunkten, verwertbare_messwerte_df, p.dict_abf_io_ereignis, rechenwert_verwertbare_sekunden, p.has_mete_data)
