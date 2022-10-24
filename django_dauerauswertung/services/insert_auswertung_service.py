@@ -54,6 +54,7 @@ def insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis: Ergebnisse)
         """
     cursor.execute(q)
     new_row_id = cursor.fetchone()
+<<<<<<< HEAD
     lr_arr = [[i.time.isoformat(), i.pegel, i.immissionsort, i.verursacht, new_row_id] for i in ergebnis.lrpegel_set]
     rejected_set = [[i.time.isoformat(), i.grund, i.messpunkt, new_row_id] for i in ergebnis.rejected_set]
     detected_set = [[i.time.isoformat(), i.duration, i.messpunkt, 1, new_row_id] for i in ergebnis.detected_set]
@@ -72,6 +73,13 @@ def insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis: Ergebnisse)
             maxpegel_set.append([time, 10, 1, new_row_id[0]])
             # schallleistungspegel_set.append({"a": time, "b": 1, "c": 1, "d": new_row_id[0]})
             schallleistungspegel_set.append([time, 1, 1, new_row_id[0]])
+=======
+    lr_arr = [[i.time.isoformat(), i.pegel, i.verursacht, i.immissionsort, new_row_id] for i in ergebnis.lrpegel_set]
+    rejected_set = [[i.time.isoformat(), i.grund, 1, new_row_id] for i in ergebnis.rejected_set]
+    detected_set = []
+    maxpegel_set = [[i.time.isoformat(), i.pegel, i.id_immissionsort, new_row_id] for i in ergebnis.maxpegel_set]
+    schallleistungspegel_set = [[i.time.isoformat(), i.pegel, i.id_messpunkt, new_row_id] for i in ergebnis.schallleistungspegel_set]
+>>>>>>> ca0203a25f3fd5ed6d824e9bbb51f10af7397468
 
 
     execute_values(cursor, """INSERT INTO tsdb_lrpegel (time, pegel, immissionsort_id, verursacht_id, berechnet_von_id) VALUES %s""", lr_arr)
