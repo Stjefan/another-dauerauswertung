@@ -6,12 +6,12 @@ import pandas as pd
 import numpy as np
 import requests
 
-from DTO import (Projekt, Immissionsort, DTO_LrPegel, DTO_Rejected,
+from DTO import (Projekt, Immissionsort, DTO_LrPegel, DTO_Rejected, DTO_Detected, DTO_Maxpegel, DTO_Schallleistungpegel,
     Messpunkt, Auswertungslauf, Koordinaten, Detected, Vorbeifahrt, Aussortiert, Schallleistungspegel, LautesteStunde, Ergebnisse)
 from constants import get_interval_beurteilungszeitraum_from_datetime, get_id_corresponding_beurteilungszeitraum, terzfrequenzen, umrechnung_Z_2_A, get_start_end_beurteilungszeitraum_from_datetime
 
 
-from messdaten_service import RandomMessdatenService # get_resudaten, get_terzdaten, get_metedaten, get_resu_all_mps, get_terz_all_mps, read_mete_data_v1
+from messdaten_service import RandomMessdatenService, MessdatenServiceV3 # get_resudaten, get_terzdaten, get_metedaten, get_resu_all_mps, get_terz_all_mps, read_mete_data_v1
 
 import stumpy
 import math
@@ -401,15 +401,16 @@ def berechne_schallleistungspegel_an_mp(mp: Messpunkt, pegel_an_mp_df: pd.DataFr
     schallleistungspegel = berechne_schallleistungpegel_an_mp_12_21(
                 mp.Id, pegel_an_mp_df, mp.LWA
             )
-    print(schallleistungspegel) 
+    print("Schallleistungpegel:", schallleistungspegel) 
+    return schallleistungspegel
 
-def berechne_max_pegel_an_io(io: Immissionsort, lafmax_pegel_an_mps: pd.DataFrame, wind_data_df: pd.DataFrame,mps, abf_data):
+def berechne_max_pegel_an_io(io: Immissionsort, lafmax_pegel_an_mps: pd.DataFrame, wind_data_df: pd.DataFrame,mps, abf_data, has_mete):
     cols_lautstaerke_von_verursacher = []
 
 
     
     for mp in mps:
-        cols_lautstaerke_von_verursacher.append(berechne_hoechste_lautstaerke_an_io_12_21(io, mp, abf_data[(io.Id, mp.Id)], lafmax_pegel_an_mps, has_mete=wind_data_df is not None))
+        cols_lautstaerke_von_verursacher.append(berechne_hoechste_lautstaerke_an_io_12_21(io, mp, abf_data[(io.Id, mp.Id)], lafmax_pegel_an_mps, has_mete=has_mete))
 
     df_lauteste_stunde_io_von_mp = pd.concat(cols_lautstaerke_von_verursacher, axis=1)
     arg_max_index_lautstaerke_io: datetime = df_lauteste_stunde_io_von_mp.max(axis=1).idxmax()
@@ -421,10 +422,10 @@ def berechne_max_pegel_an_io(io: Immissionsort, lafmax_pegel_an_mps: pd.DataFram
 
 
 
-def berechne_pegel_an_io(from_date, to_date, io: Immissionsort, laerm_nach_ursachen_an_mps_df: pd.DataFrame, wind_data_df: pd.DataFrame, dict_abf_io_ereignis, rechenwert_verwertbare_sekunden):
+def berechne_pegel_an_io(from_date, to_date, io: Immissionsort, laerm_nach_ursachen_an_mps_df: pd.DataFrame, wind_data_df: pd.DataFrame, dict_abf_io_ereignis, rechenwert_verwertbare_sekunden, has_mete):
     cols_laerm_nach_ursachen_an_io = []
     for col in laerm_nach_ursachen_an_mps_df.columns:
-        if False: # wind_data_df is not None:
+        if has_mete: # wind_data_df is not None:
             winkel_io_mp = berechne_winkel_io_mp_12_21(Koordinaten(0, 0), Koordinaten(10, 0))
             result = wind_data_df.apply(lambda i: korrigiere_windeinfluss(winkel_io_mp + 180 + i["Windrichtung"], i["MaxWindgeschwindigkeit"]), axis=1)
             laerm_nach_ursachen_an_io_series: pd.DataFrame = laerm_nach_ursachen_an_mps_df[col] + result[laerm_nach_ursachen_an_mps_df.index] + dict_abf_io_ereignis[io.Id, col]
@@ -439,6 +440,8 @@ def berechne_pegel_an_io(from_date, to_date, io: Immissionsort, laerm_nach_ursac
     laerm_nach_ursachen_an_io_df = pd.concat(cols_laerm_nach_ursachen_an_io, axis=1)    
     dti3 = pd.date_range(from_date, to_date, freq="1s", name="Timestamp")
     df3 = pd.DataFrame(index=dti3)
+
+    print(df3, laerm_nach_ursachen_an_io_df)
 
     df_filled_holes = df3.merge(10**(0.1*laerm_nach_ursachen_an_io_df) / rechenwert_verwertbare_sekunden, how='left', left_index=True, right_index=True)
     df_filled_holes.fillna(0, inplace=True)
@@ -497,12 +500,13 @@ def create_rechenwert_column(column: pd.Series, new_name: str):
 
 
 def load_data(from_date, to_date, my_mps_data, use_terz_data=True, has_mete=True):
+    m = MessdatenServiceV3() # RandomMessdatenService()
     if use_terz_data:
-        terz = RandomMessdatenService.get_terz_all_mps(my_mps_data, from_date, to_date)
-        resu =RandomMessdatenService.get_resu_all_mps(my_mps_data, from_date, to_date)
+        terz = m.get_terz_all_mps(my_mps_data, from_date, to_date)
+        resu =m.get_resu_all_mps(my_mps_data, from_date, to_date)
 
     if has_mete:
-        mete = RandomMessdatenService.read_mete_data_v1(from_date, to_date)
+        mete = m.get_metedaten(2, from_date, to_date)
         if use_terz_data:
             data_as_one = create_complete_df(resu, terz, mete, has_mete)
         else:
@@ -610,7 +614,7 @@ def filter_and_modify_data(my_mps_data: list[Messpunkt], all_data_df: pd.DataFra
                 # my_results_filter[f"vogelMp{mp.id}"] = [] # aussortiert_by_vogelfilter[-aussortiert_by_vogelfilter]
                 if True:
                     modifizierte_pegel_wegen_grillen = find_and_modify_grillen(mp.Id, messwerte_nach_filtern_df)
-                    s.loc[modifizierte_pegel_wegen_grillen[modifizierte_pegel_wegen_grillen].index] = "grille"
+                    s.loc[modifizierte_pegel_wegen_grillen.index] = "grille"
                     if True:
                         messwerte_nach_filtern_df.loc[
                             modifizierte_pegel_wegen_grillen.index, f"""R{mp.Id}_LAFeq"""]\
@@ -647,7 +651,8 @@ def get_project_via_rest(name: str) -> Projekt:
                 dict_abf_io_ereignis[(io.Id, e)] = abfs[(io.Id, mp.Id)]
 
     ursachen_an_ios = dict(zip([el["name"] for el in projekt_json[idx]["laermursacheanimmissionsorten_set"]], projekt_json[idx]["laermursacheanimmissionsorten_set"])) 
-    p1 = Projekt(projekt_json[idx]['name'], ios, mps, abfs, "blub", has_mete_data=True, dict_abf_io_ereignis = dict_abf_io_ereignis, id_in_db =  projekt_json[idx]["id"],ursachen_an_ios=ursachen_an_ios)
+    p1 = Projekt(projekt_json[idx]['name'], ios, mps, abfs, "blub", has_mete_data=False, dict_abf_io_ereignis = dict_abf_io_ereignis, id_in_db =  projekt_json[idx]["id"],ursachen_an_ios=ursachen_an_ios)
+    
     return p1
 
 
@@ -678,12 +683,12 @@ def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime, p
         rejected_set = []
         detected_set = []
 
-        all_data_df = load_data(from_date_data_vorhanden, to_date_data_vorhanden, p.MPs, True, True)
+        all_data_df = load_data(from_date_data_vorhanden, to_date_data_vorhanden, p.MPs, True, p.has_mete_data)
 
         number_seconds_with_all_measurements = len(all_data_df)
 
-        filtered_and_modified_df, aussortierte_sekunden_mit_grund = filter_and_modify_data(p.MPs, all_data_df, True)
-
+        filtered_and_modified_df, aussortierte_sekunden_mit_grund = filter_and_modify_data(p.MPs, all_data_df, p.has_mete_data)
+        print("aussortierte_sekunden_mit_grund", aussortierte_sekunden_mit_grund)
         for idx, val in aussortierte_sekunden_mit_grund.items():
             rejected_set.append(
                  DTO_Rejected(idx, 1)
@@ -704,22 +709,19 @@ def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime, p
             
 
             for mp in p.MPs:
-                berechne_schallleistungspegel_an_mp(mp, verwertbare_messwerte_df)
+                schallleistungspegel_in_stunde = berechne_schallleistungspegel_an_mp(mp, verwertbare_messwerte_df)
+                for idx, row in schallleistungspegel_in_stunde.items():
+                    schallleistungspegel_set.append(DTO_Schallleistungpegel(datetime(from_date.year, from_date.month, from_date.day, idx, 0, 0, 0), row, mp.id_in_db))
 
             
 
             for io in p.IOs:
-                zeitpunkt_maxpegel_an_io, ursache_maxpegel_an_io, maxpegel_an_io = berechne_max_pegel_an_io(io, verwertbare_messwerte_df, verwertbare_messwerte_df, p.MPs, p.Ausbreitungsfaktoren)
+                zeitpunkt_maxpegel_an_io, ursache_maxpegel_an_io, maxpegel_an_io = berechne_max_pegel_an_io(io, verwertbare_messwerte_df, verwertbare_messwerte_df, p.MPs, p.Ausbreitungsfaktoren, p.has_mete_data)
                 print(ursache_maxpegel_an_io, zeitpunkt_maxpegel_an_io, maxpegel_an_io)
-                maxpegel_set.append(
-                    {"time": zeitpunkt_maxpegel_an_io.isoformat(),
-                            "immissionsort": io.id_in_db,
-                            "pegel": maxpegel_an_io
-                            }
-                )
+                maxpegel_set.append(DTO_Maxpegel(zeitpunkt_maxpegel_an_io, maxpegel_an_io, io.id_in_db))
                 
 
-                result_lr = berechne_pegel_an_io(from_date, to_date, io, laermursachen_an_messpunkten, verwertbare_messwerte_df, p.dict_abf_io_ereignis, rechenwert_verwertbare_sekunden)
+                result_lr = berechne_pegel_an_io(from_date, to_date, io, laermursachen_an_messpunkten, verwertbare_messwerte_df, p.dict_abf_io_ereignis, rechenwert_verwertbare_sekunden, p.has_mete_data)
 
 
                 for col in result_lr.columns:

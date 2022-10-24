@@ -97,7 +97,7 @@ def insert_files_from_folder(messpunkt_id: int, folder: MessdatenFolder, filter_
                 # raise e
 
 
-def process_data_file(file_path: str, project_name: str, messpunkt_name: str, messfile_typ: Messfiletyp):
+def process_data_file(file_path: str, project_name: str, messpunkt_name: str, messfile_typ: Messfiletyp, messpunkt_id: int):
     try:
         df_resu = None
         df_terz = None
@@ -106,6 +106,10 @@ def process_data_file(file_path: str, project_name: str, messpunkt_name: str, me
             df_resu, df_terz, df_mete = read_svantek_file.process_svantek_rtm(file_path)
         elif messfile_typ ==  Messfiletyp.version_07_21_ohne_wetterdaten:
             df_resu, df_terz = read_svantek_file.process_svantek_rt(file_path)
+        insert_resu(df_resu, messpunkt_id)
+        insert_terz(df_terz, messpunkt_id)
+        if df_mete is not None:
+            insert_mete(df_mete, messpunkt_id)
 
     except Exception as e:
         logging.exception(e)

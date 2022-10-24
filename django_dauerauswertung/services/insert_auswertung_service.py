@@ -18,11 +18,19 @@ app_name = "tsdb"
 
 def delete_old_data_via_psycopg2(cursor, id_old_auswertungslauf, from_date, to_date):
     for tbl in ["lrpegel", "rejected", "detected", "schallleistungpegel", "maxpegel"]:
-        q = f"""
+        q1 = f"""
                 DELETE FROM {app_name}_{tbl} WHERE time >= '{from_date}' and time <= '{to_date}' and berechnet_von_id = {id_old_auswertungslauf};
                 """
-        cursor.execute(q)
-    cursor.execute(f"""DELETE FROM {app_name}_Auswertungslauf WHERE id = {id_old_auswertungslauf}""")
+                
+        cursor.execute(q1)
+        print(q1)
+        q2 = f"SELECT drop_chunks('{app_name}_{tbl}', '{from_date + timedelta(days=+1)}', '{to_date + timedelta(days=-1)}');"
+        cursor.execute(q2)
+        print(q2)
+    q1 = f"""DELETE FROM {app_name}_Auswertungslauf WHERE id = {id_old_auswertungslauf}"""
+    print(q1)
+    # SELECT set_chunk_time_interval('tsdb_lrpegel', INTERVAL '1 hours');
+    cursor.execute(q1)
     
 
 def get_id_old_auswertungslauf(cursor, from_date, to_date):
@@ -47,10 +55,10 @@ def insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis: Ergebnisse)
     cursor.execute(q)
     new_row_id = cursor.fetchone()
     lr_arr = [[i.time.isoformat(), i.pegel, i.immissionsort, i.verursacht, new_row_id] for i in ergebnis.lrpegel_set]
-    rejected_set = [[i.time.isoformat(), i.grund, 1, new_row_id] for i in ergebnis.rejected_set]
-    detected_set = []
-    maxpegel_set = []
-    schallleistungspegel_set = []
+    rejected_set = [[i.time.isoformat(), i.grund, i.messpunkt, new_row_id] for i in ergebnis.rejected_set]
+    detected_set = [[i.time.isoformat(), i.duration, i.messpunkt, 1, new_row_id] for i in ergebnis.detected_set]
+    maxpegel_set = [[i.time.isoformat(), i.pegel, i.immissionsort, new_row_id] for i in ergebnis.maxpegel_set]
+    schallleistungspegel_set = [[i.time.isoformat(), i.pegel, i.messpunkt, new_row_id] for i in ergebnis.schallleistungspegel_set]
 
     if False:
         for i in range(0, 5*16*12):

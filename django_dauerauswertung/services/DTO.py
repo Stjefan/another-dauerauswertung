@@ -100,6 +100,25 @@ class DTO_LrPegel:
 class DTO_Rejected:
     time: datetime
     grund: int
+    messpunkt: int = 2
+
+@dataclass
+class DTO_Detected:
+    time: datetime
+    duration: int
+    messpunkt: int
+
+@dataclass
+class DTO_Maxpegel:
+    time: datetime
+    pegel: float
+    immissionsort: int
+
+@dataclass
+class DTO_Schallleistungpegel:
+    time: datetime
+    pegel: float
+    messpunkt: int
 
 @dataclass
 class Ergebnisse:
@@ -108,12 +127,12 @@ class Ergebnisse:
     verhandene_messwerte: int
     verwertebare_messwerte: int
     in_berechnung_gewertete_messwerte: int
-    detected_set: list
+    detected_set: list[DTO_Detected]
     lrpegel_set: list[DTO_LrPegel]
-    rejected_set: list
-    maxpegel_set: list
+    rejected_set: list[DTO_Rejected]
+    maxpegel_set: list[DTO_Maxpegel]
     schallleistungspegel_set: list
-    zuordnung: int
+    zuordnung: list[DTO_Schallleistungpegel]
 
 
 
