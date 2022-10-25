@@ -20,9 +20,9 @@ def delete_old_data_via_psycopg2(cursor, id_old_auswertungslauf, from_date, to_d
     if True:
         for tbl in ["lrpegel", "rejected", "detected", "schallleistungpegel", "maxpegel"]:
             q1 = f"""
-                    DELETE FROM {app_name}_{tbl} WHERE time >= '{from_date}' and time <= '{to_date}' and berechnet_von_id = {id_old_auswertungslauf};
+                    DELETE FROM {app_name}_{tbl} WHERE berechnet_von_id = {id_old_auswertungslauf};
                     """
-            
+            #  DELETE FROM {app_name}_{tbl} WHERE time >= '{from_date}' and time <= '{to_date}' and berechnet_von_id = {id_old_auswertungslauf};
             cursor.execute(q1)
             print(q1)
             if False:
@@ -37,7 +37,7 @@ def delete_old_data_via_psycopg2(cursor, id_old_auswertungslauf, from_date, to_d
     
 
 def get_id_old_auswertungslauf(cursor, zuordnung, from_date, to_date):
-    q = f"""SELECT id FROM {app_name}_Auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum  >= '{from_date}' and zeitpunkt_im_beurteilungszeitraum <= '{to_date}' and zuordnung_id = {zuordnung}"""
+    q = f"""SELECT id FROM {app_name}_Auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum  >= '{from_date.astimezone()}' and zeitpunkt_im_beurteilungszeitraum <= '{to_date.astimezone()}' and zuordnung_id = {zuordnung}"""
     cursor.execute(q)
     
     result = cursor.fetchone()
@@ -52,7 +52,7 @@ def insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis: Ergebnisse)
         INSERT INTO {app_name}_Auswertungslauf 
         (zeitpunkt_im_beurteilungszeitraum, zeitpunkt_durchfuehrung, verhandene_messwerte, verwertebare_messwerte, in_berechnung_gewertete_messwerte, zuordnung_id) 
         VALUES 
-        ('{datetime.now()}', '{ergebnis.zeitpunkt_im_beurteilungszeitraum}', {ergebnis.verhandene_messwerte}, {ergebnis.verwertebare_messwerte}, {ergebnis.in_berechnung_gewertete_messwerte}, {ergebnis.zuordnung}) 
+        ('{ergebnis.zeitpunkt_im_beurteilungszeitraum.astimezone()}', '{datetime.now().astimezone()}', {ergebnis.verhandene_messwerte}, {ergebnis.verwertebare_messwerte}, {ergebnis.in_berechnung_gewertete_messwerte}, {ergebnis.zuordnung}) 
         RETURNING id;
         """
     cursor.execute(q)
