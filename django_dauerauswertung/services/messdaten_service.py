@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import math
+from time import timezone
 from typing import List
 import pandas as pd
 from datetime import datetime
@@ -7,6 +8,7 @@ import numpy as np
 from constants import terzfrequenzen
 from DTO import Messpunkt
 
+import pytz
 
 from sqlalchemy import create_engine
 
@@ -29,8 +31,10 @@ if True:
         
 
         def get_resudaten_single(self, messpunkt: Messpunkt, from_date: datetime, to_date: datetime) -> pd.DataFrame:
+            q = f"select lafeq, lcfeq, lafmax, time from \"tsdb_resu\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME"
+            print("Query", q)
             resu_df = pd.read_sql(
-            f"select lafeq, lcfeq, lafmax, time from \"tsdb_resu\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", self.dbConnection)
+            q, self.dbConnection)
 
             
             data_dict = {
@@ -41,6 +45,9 @@ if True:
             }
             resu_df.rename(columns=data_dict, inplace=True)
             print(resu_df["Timestamp"].iloc[0].tzinfo)
+            resu_df['Timestamp'] = resu_df['Timestamp'].dt.tz_convert('Europe/Berlin')
+            # cet = pytz.timezone('CET').utcoffset()
+            # resu_df['Timestamp'] = resu_df['Timestamp'] + cet
             resu_df['Timestamp'] = resu_df['Timestamp'].dt.tz_localize(None)
             resu_df.set_index("Timestamp", inplace=True)
             print(resu_df)
@@ -79,7 +86,7 @@ if True:
                 for j in t_arr:
                     cols_terz.append(f"{j}_{i}")
             terz_df = pd.read_sql(
-            f"select {','.join(cols_in_db)} from \"tsdb_terz\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", self.dbConnection)
+            f"select {','.join(cols_in_db)} from \"tsdb_terz\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME", self.dbConnection)
 
 
 
@@ -87,14 +94,19 @@ if True:
                                     "hz200": f"T{messpunkt.Id}_LZeq200", "hz250": f"T{messpunkt.Id}_LZeq250", "hz315": f"T{messpunkt.Id}_LZeq315", "hz400": f"T{messpunkt.Id}_LZeq400", "hz500": f"T{messpunkt.Id}_LZeq500", "hz630": f"T{messpunkt.Id}_LZeq630", "hz800": f"T{messpunkt.Id}_LZeq800", "hz1000": f"T{messpunkt.Id}_LZeq1000", "hz1250": f"T{messpunkt.Id}_LZeq1250", "hz1600": f"T{messpunkt.Id}_LZeq1600",
                                     "hz2000": f"T{messpunkt.Id}_LZeq2000", "hz2500": f"T{messpunkt.Id}_LZeq2500", "hz3150": f"T{messpunkt.Id}_LZeq3150", "hz4000": f"T{messpunkt.Id}_LZeq4000", "hz5000": f"T{messpunkt.Id}_LZeq5000", "hz6300": f"T{messpunkt.Id}_LZeq6300", "hz8000": f"T{messpunkt.Id}_LZeq8000", "hz10000": f"T{messpunkt.Id}_LZeq10000", "hz12500": f"T{messpunkt.Id}_LZeq12500", "hz16000": f"T{messpunkt.Id}_LZeq16000",
                                     "hz20000": f"T{messpunkt.Id}_LZeq20000", "time": "Timestamp"}, inplace=True)
+            
+            terz_df['Timestamp'] = terz_df['Timestamp'].dt.tz_convert('Europe/Berlin')
             terz_df['Timestamp'] = terz_df['Timestamp'].dt.tz_localize(None)
+            # cet = pytz.timezone('CET').utcoffset()
+            # resu_df['Timestamp'] = resu_df['Timestamp'] + cet
+
             terz_df.set_index("Timestamp", inplace=True)
             return terz_df
 
 
 
 
-        def get_metedaten(self, messpunkt: Messpunkt, from_date, to_date) -> pd.DataFrame:
+        def get_metedaten(self, messpunkt: Messpunkt, from_date: datetime, to_date: datetime) -> pd.DataFrame:
             rename_dict = {
                 "time": "Timestamp",
                 "winddirection": "Windrichtung",
@@ -102,11 +114,12 @@ if True:
                 "windspeed": "MaxWindgeschwindigkeit",
                 
             }
-            mete_df = pd.read_sql(f"select time, rain, temperature, windspeed, pressure, humidity, winddirection from \"tsdb_mete\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", self.dbConnection)
+            mete_df = pd.read_sql(f"select time, rain, temperature, windspeed, pressure, humidity, winddirection from \"tsdb_mete\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME", self.dbConnection)
             print(mete_df)
             mete_df.rename(columns=rename_dict, inplace=True)
             print(mete_df)
-            mete_df = mete_df.set_index("Timestamp", inplace=True)
+            mete_df['Timestamp'] = mete_df['Timestamp'].dt.tz_convert('Europe/Berlin')
+            mete_df['Timestamp'] = mete_df['Timestamp'].dt.tz_localize(None)
             mete_df.set_index("Timestamp", inplace=True)
 
             return mete_df

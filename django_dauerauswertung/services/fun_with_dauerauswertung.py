@@ -8,11 +8,11 @@ from datetime import datetime
 if __name__ == "__main__":
     FORMAT = '%(filename)s %(lineno)d %(asctime)s %(levelname)s %(message)s'
     logging.basicConfig(
-    level=logging.DEBUG, format=FORMAT, handlers=[
+    level=logging.INFO, format=FORMAT, handlers=[
         #logging.FileHandler("eval.log"),
         logging.StreamHandler(sys.stdout)
         ]
     )
-    zeitpunkt = datetime(2022, 10, 24, 22, 30, 0)
+    zeitpunkt = datetime(2022, 10, 25, 8, 30, 0)
     ergebnis = werte_beurteilungszeitraum_aus(zeitpunkt, "mannheim")
     insert_auswertung_via_psycopg2(zeitpunkt, ergebnis)

@@ -19,20 +19,28 @@ def read_data():
     from_date = datetime(2022,10,5,6,0,0)
     to_date = datetime(2022,10,5,22,0,0)
     messpunkt_id = 7
-    resu_df = pds.read_sql(
-        f"select * from \"tsdb_resu\" where messpunkt_id = {messpunkt_id} and time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", dbConnection)
+    if False:
+        resu_df = pds.read_sql(
+            f"select * from \"tsdb_resu\" where messpunkt_id = {messpunkt_id} and time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", dbConnection)
+        print(resu_df)
 
-    print(resu_df)
+    multi_line_sql = f"""WITH old AS (SELECT id FROM tsdb_auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum = '{'2022-10-25 06:00:00+02:00'}' AND zuordnung_id = 2), 
+    T1 AS (SELECT time AS t1time, dauer as t1dauer FROM tsdb_detected AS d JOIN old ON old.id = d.berechnet_von_id), T2 AS (SELECT time AS t2time, filter_id FROM tsdb_rejected AS d JOIN old ON old.id = d.berechnet_von_id),
+    T3 AS (SELECT * FROM tsdb_resu where messpunkt_id = 7 and time >= '{'2022-10-25 06:00:00+02:00'}' and time < '{'2022-10-25 07:00:00+02:00'}' ORDER BY time),
+    T4 AS ((SELECT * FROM (T3 LEFT JOIN T1 ON T3.time <= (t1time + (INTERVAL '1 sec' * t1dauer)) AND T3.time >= t1time )))
+    SELECT * FROM (SELECT time, max(t1dauer) AS BLUB, min(t1dauer) AS BLA FROM T4 AS J1 LEFT JOIN T2 ON J1.time = t2time GROUP BY time) AS J2 WHERE J2.BLUB != J2.BLA ORDER BY time"""
+    ml_df = pds.read_sql(multi_line_sql, dbConnection)
+    print(ml_df)
+    if False:
+        terz_df = pds.read_sql(
+            f"select * from \"tsdb_terz\" where messpunkt_id = {messpunkt_id} and time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", dbConnection)
 
-    terz_df = pds.read_sql(
-        f"select * from \"tsdb_terz\" where messpunkt_id = {messpunkt_id} and time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", dbConnection)
+        print(terz_df)
 
-    print(terz_df)
+        mete_df = pds.read_sql(
+            f"select * from \"tsdb_mete\" where time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", dbConnection)
 
-    mete_df = pds.read_sql(
-        f"select * from \"tsdb_mete\" where time >= '{from_date}' and time < '{to_date}' ORDER BY TIME", dbConnection)
-
-    print(mete_df)
+        print(mete_df)
 
     # Close the database connection
 

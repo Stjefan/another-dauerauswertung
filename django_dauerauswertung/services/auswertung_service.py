@@ -283,12 +283,12 @@ def filter_zug_v3(mp_id: int, df: pd.DataFrame):
         
         for r in motif_matches:
             motif_counter += 1
-            print(r[1])
+            # print(r[1])
             
             start_detection = r[1]
             end_detections = r[1]+len(arg[0])
-            print(start_detection, end_detections)
-            print(df_reset_index.iloc[start_detection]["Timestamp"])
+            # print(start_detection, end_detections)
+            # print(df_reset_index.iloc[start_detection]["Timestamp"])
             if r[0] <= arg[2]:
 
                 detections.append(Detected(df_reset_index.iloc[start_detection]["Timestamp"], df_reset_index.iloc[end_detections]["Timestamp"], df_reset_index.iloc[start_detection:end_detections]["Timestamp"], arg[3], mp_id, id_counter, r[0]))
@@ -500,7 +500,7 @@ def create_rechenwert_column(column: pd.Series, new_name: str):
 
 
 def load_data(from_date, to_date, my_mps_data, use_terz_data=True, has_mete=True):
-    m = RandomMessdatenService() # MessdatenServiceV3() # 
+    m = MessdatenServiceV3() # RandomMessdatenService() #
     if use_terz_data:
         terz = m.get_terz_all_mps(my_mps_data, from_date, to_date)
         resu =m.get_resu_all_mps(my_mps_data, from_date, to_date)
@@ -516,7 +516,7 @@ def load_data(from_date, to_date, my_mps_data, use_terz_data=True, has_mete=True
             data_as_one = create_complete_df(resu, terz, [], has_mete)
         else:
             data_as_one = create_complete_df(resu, [], [], has_mete, False)
-    print(data_as_one)
+    # print(data_as_one)
     return data_as_one
 
 
@@ -569,6 +569,7 @@ def filter_and_modify_data(my_mps_data: list[Messpunkt], all_data_df: pd.DataFra
     s2 = pd.Series(index=all_data_df.index, dtype="int")
     filter_result_df = pd.DataFrame(data={"ursache": s1, "messpunkt_id": s2})
 
+    found_detections = []
     if has_mete:
         
         ausortiert_by_windfilter = filter_wind_12_21(messwerte_nach_filtern_df)
@@ -591,7 +592,7 @@ def filter_and_modify_data(my_mps_data: list[Messpunkt], all_data_df: pd.DataFra
             messwerte_nach_filtern_df = messwerte_nach_filtern_df[-aussortiert_by_simple_filter]
 
             filter_result_df.loc[aussortiert_by_simple_filter[aussortiert_by_simple_filter].index, :] = [3, mp.id_in_db]
-            if False:
+            if True:
                 if "Zug" in mp.Filter:
                     logging.info(f"Vor Zugfilter: {len(messwerte_nach_filtern_df)}")
                     if False:
@@ -607,12 +608,16 @@ def filter_and_modify_data(my_mps_data: list[Messpunkt], all_data_df: pd.DataFra
                             aussortierung_set.append(Aussortiert(messwerte_nach_filtern_df.loc[(messwerte_nach_filtern_df.index >= d.start) & (messwerte_nach_filtern_df.index <= d.end)].index.to_series(), "Zug_V2", mp))
                             messwerte_nach_filtern_df = messwerte_nach_filtern_df.loc[(messwerte_nach_filtern_df.index < d.start) | (messwerte_nach_filtern_df.index > d.end)]
                         
-                    if True:
-                        detections = filter_zug_v3(mp.Id, messwerte_nach_filtern_df)
-                        for d in detections:
-                            d: Detected
-                            messwerte_nach_filtern_df = messwerte_nach_filtern_df.loc[(messwerte_nach_filtern_df.index < d.start) | (messwerte_nach_filtern_df.index > d.end)]
-                    logging.info(f"Nach Zugfilter: {len(messwerte_nach_filtern_df)}")
+                if True:
+                    detections = filter_zug_v3(mp.Id, messwerte_nach_filtern_df)
+                    for d in detections:
+                        d: Detected
+                        found_detections.append(DTO_Detected(d.start, int((d.end-d.start).total_seconds()), mp.id_in_db))
+                        messwerte_nach_filtern_df = messwerte_nach_filtern_df.loc[(messwerte_nach_filtern_df.index < d.start) | (messwerte_nach_filtern_df.index > d.end)]
+                        filter_result_df.loc[(filter_result_df.index < d.start) | (filter_result_df.index > d.end), :] = [6, mp.id_in_db]
+
+                logging.info(f"Nach Zugfilter: {len(messwerte_nach_filtern_df)}")
+                logging.info(f"Len(found_detections): {len(found_detections)}")
             if use_terz_data:
                 aussortiert_by_vogelfilter = filter_vogel_12_21(mp.Id, messwerte_nach_filtern_df)
                 
@@ -629,7 +634,7 @@ def filter_and_modify_data(my_mps_data: list[Messpunkt], all_data_df: pd.DataFra
                             = modifizierte_pegel_wegen_grillen
                         logging.debug(modifizierte_pegel_wegen_grillen)
     filter_result_df.dropna(inplace=True)
-    return messwerte_nach_filtern_df, filter_result_df
+    return messwerte_nach_filtern_df, filter_result_df, found_detections
 
 
 def get_project_via_rest(name: str) -> Projekt:
@@ -694,7 +699,7 @@ def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime, p
 
         number_seconds_with_all_measurements = len(all_data_df)
 
-        filtered_and_modified_df, aussortierte_sekunden_mit_grund = filter_and_modify_data(p.MPs, all_data_df, p.has_mete_data)
+        filtered_and_modified_df, aussortierte_sekunden_mit_grund, detected_set = filter_and_modify_data(p.MPs, all_data_df, p.has_mete_data)
         print("aussortierte_sekunden_mit_grund", aussortierte_sekunden_mit_grund)
         print("blub", aussortierte_sekunden_mit_grund[aussortierte_sekunden_mit_grund.isna()])
         for idx, row in aussortierte_sekunden_mit_grund.iterrows():
