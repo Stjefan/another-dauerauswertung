@@ -11,7 +11,7 @@ from DTO import Messpunkt
 import pytz
 
 from sqlalchemy import create_engine
-
+import logging
 
 
 if True:
@@ -44,13 +44,13 @@ if True:
                 "time": "Timestamp"
             }
             resu_df.rename(columns=data_dict, inplace=True)
-            print(resu_df["Timestamp"].iloc[0].tzinfo)
+            # print(resu_df["Timestamp"].iloc[0].tzinfo)
             resu_df['Timestamp'] = resu_df['Timestamp'].dt.tz_convert('Europe/Berlin')
             # cet = pytz.timezone('CET').utcoffset()
             # resu_df['Timestamp'] = resu_df['Timestamp'] + cet
             resu_df['Timestamp'] = resu_df['Timestamp'].dt.tz_localize(None)
             resu_df.set_index("Timestamp", inplace=True)
-            print(resu_df)
+            logging.debug(resu_df)
             return resu_df
 
 
@@ -95,6 +95,7 @@ if True:
                                     "hz2000": f"T{messpunkt.Id}_LZeq2000", "hz2500": f"T{messpunkt.Id}_LZeq2500", "hz3150": f"T{messpunkt.Id}_LZeq3150", "hz4000": f"T{messpunkt.Id}_LZeq4000", "hz5000": f"T{messpunkt.Id}_LZeq5000", "hz6300": f"T{messpunkt.Id}_LZeq6300", "hz8000": f"T{messpunkt.Id}_LZeq8000", "hz10000": f"T{messpunkt.Id}_LZeq10000", "hz12500": f"T{messpunkt.Id}_LZeq12500", "hz16000": f"T{messpunkt.Id}_LZeq16000",
                                     "hz20000": f"T{messpunkt.Id}_LZeq20000", "time": "Timestamp"}, inplace=True)
             
+            # print(terz_df)
             terz_df['Timestamp'] = terz_df['Timestamp'].dt.tz_convert('Europe/Berlin')
             terz_df['Timestamp'] = terz_df['Timestamp'].dt.tz_localize(None)
             # cet = pytz.timezone('CET').utcoffset()
@@ -115,9 +116,9 @@ if True:
                 
             }
             mete_df = pd.read_sql(f"select time, rain, temperature, windspeed, pressure, humidity, winddirection from \"tsdb_mete\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME", self.dbConnection)
-            print(mete_df)
+
             mete_df.rename(columns=rename_dict, inplace=True)
-            print(mete_df)
+
             mete_df['Timestamp'] = mete_df['Timestamp'].dt.tz_convert('Europe/Berlin')
             mete_df['Timestamp'] = mete_df['Timestamp'].dt.tz_localize(None)
             mete_df.set_index("Timestamp", inplace=True)

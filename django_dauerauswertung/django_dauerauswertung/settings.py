@@ -116,11 +116,11 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Berlin' # 'UTC'
 
 USE_I18N = True
 
-USE_TZ = False # True
+USE_TZ = True # True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -157,10 +157,10 @@ LOGGING = {
             'formatter': 'console'
         },
         'file': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'file',
-            'filename': 'debug.log'
+            'filename': 'django.log'
         }
     },
     'loggers': {

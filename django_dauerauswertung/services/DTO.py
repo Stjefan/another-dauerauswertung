@@ -82,11 +82,13 @@ class Projekt:
     name_in_db: str
     has_mete_data: bool = False
     has_terz_data: bool = False
+    mete_station: Messpunkt = None
     gw_lafeq: float = 90
     gw_lafmax: float = 100
     dict_abf_io_ereignis: dict = None
     id_in_db: int = 0
     ursachen_an_ios: dict = field(default_factory=defaultdict)
+    filter_mit_ids: dict = field(default_factory=defaultdict)
 
 
 @dataclass

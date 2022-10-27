@@ -39,6 +39,7 @@ def create_immendingen_project():
     v1a = LaermursacheAnMesspunkt(name =  f"{m1.name} - Unkategorisiert", gemessen_an = m1)
     v1a.save()
     m2 = Messpunkt(name="Immendingen MP 2", gk_rechts = 3478651.2, gk_hoch = 5308912.9, projekt = p0, id_external = 2)
+    m2.is_meteo_station = True
     m2.save()
     v2a = LaermursacheAnMesspunkt(name =  f"{m2.name} - Unkategorisiert", gemessen_an = m2)
     v2a.save()
@@ -253,7 +254,7 @@ def create_sindelfingen_project():
 
 
 def run():
-    if True:
+    if False:
             for n in ["Grille", "Vogel", "LAFeq", "Zug", "Wind", "Regen"]:
                 r = Rejection()
                 r.name = n
@@ -264,7 +265,7 @@ def run():
                 e.name = i
                 e.save()
 
-    if True:
+    if False:
         for p in Projekt.objects.all():
                 p.delete()
 
@@ -274,6 +275,11 @@ def run():
         for p in Projekt.objects.all():
             p.delete()
         # create_debug_project()
+
+    if False:
+        m =Messpunkt.objects.get(name="Immendingen MP 2")
+        m.is_meteo_station = True
+        m.save()
 
 
         

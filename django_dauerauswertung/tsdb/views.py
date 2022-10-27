@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework import serializers
 from .models import (Ausbreitstungsfaktor, EvaluationMesspunkt, Immissionsort, Messpunkt,
+Detection, Rejection,
 LrPegel, SchallleistungPegel, MaxPegel, Detected, Rejected, 
 Projekt, Resu, Terz, Mete, LaermursacheAnImmissionsorten, LaermursacheAnMesspunkt, Auswertungslauf)
 from django.urls import path, include
@@ -97,6 +98,14 @@ class AusbreitungsfaktorSerializer(serializers.ModelSerializer):
         model = Ausbreitstungsfaktor
         fields = ["messpunkt", "immissionsort", "ausbreitungskorrektur"]
 
+
+class RejectionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rejection
+        fields = ["name", "id"]
+
+
 class ProjektSerializer(serializers.ModelSerializer):
     messpunkt_set = MessspunktSerializer(many=True)
     immissionsort_set = ImmissionsortSerializer(many=True)
@@ -109,10 +118,14 @@ class ProjektSerializer(serializers.ModelSerializer):
         AusbreitungsfaktorSerializer(abf).data 
         for mp in obj.messpunkt_set.all() for abf in mp.ausbreitstungsfaktor_set.all()]
 
+    rejections = serializers.SerializerMethodField()
 
+    def get_rejections(self, obj):
+        return [
+        RejectionSerializer(r).data for r in Rejection.objects.all()]
     class Meta:
         model = Projekt
-        fields = ["name", "id", "messpunkt_set", "immissionsort_set", "laermursacheanimmissionsorten_set", "ausbreitungsfaktoren_set"]
+        fields = ["name", "id", "messpunkt_set", "immissionsort_set", "laermursacheanimmissionsorten_set", "ausbreitungsfaktoren_set", "rejections"]
 
 class LrFilter(FilterSet):
     time = DateTimeFromToRangeFilter()
@@ -154,7 +167,14 @@ class ResuSerializer(serializers.ModelSerializer):
 class MeteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mete
-        fields = ['time']
+        fields = ['time', 
+        'rain',
+        'temperature', 
+        'windspeed',
+        'pressure',
+        'humidity',
+        'winddirection',
+        ]
 
 class ResuFilter(FilterSet):
     time = DateTimeFromToRangeFilter()
@@ -164,31 +184,50 @@ class ResuFilter(FilterSet):
             'time': [],
             'messpunkt': ['exact']
         }
+
+class MeteFilter(FilterSet):
+    time = DateTimeFromToRangeFilter()
+    class Meta:
+        model = Mete
+        fields = {
+            'time': [],
+            'messpunkt': ['exact']
+        }
+
+class TerzFilter(FilterSet):
+    time = DateTimeFromToRangeFilter()
+    class Meta:
+        model = Terz
+        fields = {
+            'time': [],
+            'messpunkt': ['exact']
+        }
+
 class ResuViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Resu.objects.all().order_by('-time')
     serializer_class = ResuSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ResuFilter
-    pagination_class = StandardResultsSetPagination
+    # pagination_class = StandardResultsSetPagination
 
 
 class TerzViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Terz.objects.all().order_by('-time')
+    queryset = Terz.objects.all().order_by('time')
     serializer_class = TerzSerializer
-    # filter_backends = (filters.DjangoFilterBackend,)
-    # filterset_class = ResuFilter
-    pagination_class = StandardResultsSetPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TerzFilter
+    # pagination_class = StandardResultsSetPagination
 
 class MeteViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Mete.objects.all().order_by('-time')
+    queryset = Mete.objects.filter(time__second=0).order_by('time')
     serializer_class = MeteSerializer
-    # filter_backends = (filters.DjangoFilterBackend,)
-    # filterset_class = ResuFilter
-    pagination_class = StandardResultsSetPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = MeteFilter
+    # pagination_class = StandardResultsSetPagination
 
 
 class LrViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = LrPegel.objects.all()
+    queryset = LrPegel.objects.all().order_by('time')
     serializer_class = LrSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = LrFilter

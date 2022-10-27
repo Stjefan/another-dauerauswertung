@@ -2,3 +2,4 @@
 /logs
 /django-dauerauswertung/debug.log
 django_dauerauswertung/debug.log
+django_dauerauswertung/django.log

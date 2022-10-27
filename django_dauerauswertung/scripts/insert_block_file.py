@@ -133,7 +133,6 @@ def insert_mete(df, messpunkt_id: int, delete_old_data = True):
     df_no_index['Date/Time'] = df_no_index['Date/Time'].dt.tz_localize("Europe/Berlin")
     df_no_index.insert(1, "messpunkt_id", messpunkt_id)
     records = df_no_index.to_numpy()
-    print(records)
     # records = [(datetime.now(), 1, 20.0, 25.0, 21.0)]
     conn = psycopg2.connect(ts_connection_string)
     mgr = CopyManager(conn, 'tsdb_mete', cols)
@@ -162,7 +161,7 @@ def insert_terz(df, messpunkt_id: int, delete_old_data = True):
     df_no_index['Date/Time'] = df_no_index['Date/Time'].dt.tz_localize("Europe/Berlin")
     df_no_index.insert(1, "messpunkt_id", messpunkt_id)
     records = df_no_index.to_numpy()
-    print(records)
+    # print(records)
     # records = [(datetime.now(), 1, 20.0, 25.0, 21.0)]
     conn = psycopg2.connect(ts_connection_string)
     mgr = CopyManager(conn, 'tsdb_terz', cols)
@@ -177,13 +176,13 @@ def insert_resu(df, messpunkt_id: int, delete_old_data = True):
     
     records = []
     df_no_index = df_reordered.reset_index()
-    print(df)
+    # print(df)
     df_no_index['Date/Time'] = df_no_index['Date/Time'].dt.tz_localize("Europe/Berlin")
-    print(df_no_index)
+    # print(df_no_index)
     df_no_index.insert(1, "messpunkt_id", messpunkt_id)
     
     records = df_no_index.to_numpy()
-    print(records)
+    # print(records)
     # records = [(df.index[0], 1, 20.0, 25.0, 21.0)]
     conn = psycopg2.connect(ts_connection_string)
     mgr = CopyManager(conn, 'tsdb_resu', cols)

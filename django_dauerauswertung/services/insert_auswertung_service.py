@@ -19,6 +19,7 @@ app_name = "tsdb"
 def delete_old_data_via_psycopg2(cursor, id_old_auswertungslauf, from_date, to_date):
     if True:
         for tbl in ["lrpegel", "rejected", "detected", "schallleistungpegel", "maxpegel"]:
+            pass
             q1 = f"""
                     DELETE FROM {app_name}_{tbl} WHERE berechnet_von_id = {id_old_auswertungslauf};
                     """
