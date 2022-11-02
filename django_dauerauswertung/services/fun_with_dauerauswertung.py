@@ -21,7 +21,7 @@ if __name__ == "__main__":
     fun_2_run_2 = insert_auswertung_via_psycopg2
     projektbezeichnung = "mannheim"
     if True:
-        for d in range(20, min(26, monthrange(year, month)[1])+1):
+        for d in range(25, min(31, monthrange(year, month)[1])+1):
             for h in [0, 1, 2, 3, 4, 5, 21, 22, 23]:
                 try:
                     zeitpunkt = datetime(year, month, d, h, 30, 0)

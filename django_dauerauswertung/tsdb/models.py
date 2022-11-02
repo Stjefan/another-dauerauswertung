@@ -8,6 +8,8 @@ from timescale.db.models.models import TimescaleModel, TimescaleDateTimeField
 
 class Projekt(models.Model):
     name = models.CharField(max_length = 200)
+    utm_x = models.FloatField(default=0.0)
+    utm_y = models.FloatField(default=0.0)
 
 
 
@@ -16,6 +18,10 @@ class Messpunkt(models.Model):
     projekt = models.ForeignKey(Projekt, on_delete=models.CASCADE)
     gk_rechts = models.FloatField(default=0.0)
     gk_hoch = models.FloatField(default=0.0)
+
+    utm_x = models.FloatField(default=0.0)
+    utm_y = models.FloatField(default=0.0)
+
     is_meteo_station = models.BooleanField(default=False)
     id_external = models.IntegerField(default=0)
     upload_folder_svantek_file = models.CharField(max_length = 200, null=True, blank=True)
@@ -29,6 +35,9 @@ class Immissionsort(models.Model):
     grenzwert_nacht = models.FloatField(default=0.0)
     gk_rechts = models.FloatField(default=0.0)
     gk_hoch = models.FloatField(default=0.0)
+
+    utm_x = models.FloatField(default=0.0)
+    utm_y = models.FloatField(default=0.0)
 
     name_4_excel =  models.CharField(max_length = 32)
     id_external = models.IntegerField(default=0)
@@ -149,17 +158,29 @@ class LrPegel(models.Model):
     pegel = models.FloatField()
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
+    class Meta:
+        managed = False
+        db_table = 'tsdb_lrpegel'
+
 class MaxPegel(models.Model):
     time = models.DateTimeField()
     immissionsort = models.ForeignKey(Immissionsort, on_delete=models.CASCADE, null=True, blank=True)
     pegel = models.FloatField()
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
+    class Meta:
+        managed = False
+        db_table = 'tsdb_maxpegel'
+
 class SchallleistungPegel(models.Model):
     time = models.DateTimeField()
     messpunkt = models.ForeignKey(Messpunkt, on_delete=models.CASCADE, null=True, blank=True)
     pegel = models.FloatField()
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tsdb_schallleistungpegel'
 
 class Detected(models.Model):
     time = models.DateTimeField()
@@ -168,11 +189,19 @@ class Detected(models.Model):
     typ = models.ForeignKey(Detection, on_delete=models.CASCADE, null=True, blank=True)
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
 
+    class Meta:
+        managed = False
+        db_table = 'tsdb_detected'
+
 class Rejected(models.Model):
     time = models.DateTimeField()
     filter = models.ForeignKey(Rejection, on_delete=models.CASCADE, null=True, blank=True)
     messpunkt = models.ForeignKey(Messpunkt, on_delete=models.SET_NULL, null=True, blank=True)
     berechnet_von = models.ForeignKey(Auswertungslauf, on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tsdb_rejected'
 
 class EvaluationMesspunkt(models.Model):
     time = models.DateTimeField()
@@ -184,7 +213,12 @@ class EvaluationMesspunkt(models.Model):
     class Meta:
         managed = False
         db_table = 'tsdb_evaluationmesspunkt'
-        
+        # Select * from tsdb_detected d JOIN tsdb_messpunkt m ON d.messpunkt_id = m.id
+        # Select * from tsdb_rejected r JOIN tsdb_messpunkt m ON r.messpunkt_id = m.id AS
+        # Select * from tsdb_resu r JOIN tsdb_messpunkt ON r.messpunkt_id = m.id
+
+        # SELECT r.id as id, r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) LEFT JOIN tsdb_rejected rej ON r.time = rej.time;
+
         # CREATE VIEW tsdb_evaluationmesspunkt_v6 AS SELECT r.id as id, r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) LEFT JOIN tsdb_rejected rej ON r.time = rej.time;
 
         # SELECT * FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) WHERE r.time >= '2022-10-05 05:00:25' and r.time <= '2022-10-05 05:00:50';

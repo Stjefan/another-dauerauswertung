@@ -252,8 +252,140 @@ def create_sindelfingen_project():
 
     
 
+def insert_utm():
+    
+    
+
+
+    ios = [
+    {
+      "id": 4,
+      "name": "Fichtenweg 2",
+      "position": [49.523202, 8.4872387],
+    },
+    {
+      "id": 5,
+      "name": "Speckweg 18",
+      "position": [49.523326, 8.48195],
+    },
+    {
+      "id": 6,
+      "name": "Spiegelfabrik 16",
+      "position": [49.519069, 8.47877],
+    }
+    ]
+    
+    mps = [
+        {
+        "id": 2,
+        "name": "Mannheim MP 2",
+        "position": [49.521449, 8.4838235],
+        "name_in_api": "Mannheim MP 2",
+        }
+    ]
+    for i in ios:
+        io = Immissionsort.objects.get(name__icontains=i["name"])
+        io.utm_x = i["position"][0]
+        io.utm_y = i["position"][1]
+        io.save()
+    for i in mps:
+        io = Messpunkt.objects.get(name__icontains=i["name"])
+        io.utm_x = i["position"][0]
+        io.utm_y = i["position"][1]
+        io.save()
+    mps = [
+        {
+        "id": 1,
+        "name": "MP 1 - Handlingkurs",
+        "name_in_api": "Immendingen MP 1",
+        "position": [47.912783, 8.728536],
+        },
+        {
+        "id": 2,
+        "name": "MP 2 - Bertha Leitstand",
+        "name_in_api": "Immendingen MP 2",
+        "position": [47.91799, 8.71139],
+        },
+        {
+        "id": 3,
+        "name": "MP 3 - Stadtstraße",
+        "name_in_api": "Immendingen MP 3",
+        "position": [47.928551, 8.725036],
+        },
+        {
+        "id": 4,
+        "name": "MP 4 - Innenstadt",
+        "name_in_api": "Immendingen MP 4",
+        "position": [47.919428, 8.738175],
+        },
+        {
+        "id": 5,
+        "name": "MP 5 - Fernstraßenoval",
+        "name_in_api": "Immendingen MP 5",
+        "position": [47.920379146443693, 8.72609453922426],
+        },
+        {
+        "id": 6,
+        "name_in_api": "Immendingen MP 6",
+        "name": "MP 6 - Stadtraße Heidestrecke",
+        "position": [47.930765, 8.739706],
+        },
+    ]
+
+    ios = [
+        {
+        "name": "Bachzimmererstr. 32",
+        "id": 1,
+        "gw_tag": 36,
+        "gw_nacht": 30,
+        "position": [47.930765, 8.731831],
+        },
+        {
+        "name": "Ziegelhütte 4",
+        "id": 5,
+        "gw_tag": 40,
+        "gw_nacht": 37,
+        "position": [47.934338, 8.736257],
+        },
+        {
+        "name": "Kreutzerweg",
+        "id": 9,
+        "gw_tag": 38,
+        "gw_nacht": 32,
+        "position": [47.93568, 8.716572],
+        },
+        {
+        "name": "Am Hewenegg 1",
+        "id": 15,
+        "gw_tag": 46,
+        "gw_nacht": 42,
+        "position": [47.917715, 8.740678],
+        },
+        {
+        "name": "Am Hewenegg 8",
+        "id": 17,
+        "gw_tag": 52,
+        "gw_nacht": 42,
+        "position": [47.915059, 8.737231],
+        }
+    ]
+    for i in ios:
+        print(i["name"])
+        io = Immissionsort.objects.get(name__icontains=i["name"])
+        io.utm_x = i["position"][0]
+        io.utm_y = i["position"][1]
+        io.save()
+    for i in mps:
+        io = Messpunkt.objects.get(name__icontains=i["name_in_api"])
+        io.utm_x = i["position"][0]
+        io.utm_y = i["position"][1]
+        io.save()
+
+
 
 def run():
+    if True:
+        insert_utm()
     if False:
             for n in ["Grille", "Vogel", "LAFeq", "Zug", "Wind", "Regen"]:
                 r = Rejection()

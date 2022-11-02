@@ -72,37 +72,43 @@ if True:
             return result
 
         def get_terzdaten_single(self,messpunkt: Messpunkt, from_date: datetime, to_date: datetime) -> pd.DataFrame:
-            terz_prefix = "LZeq"
-            available_cols_terz = []
-            cols_terz = []
-            values_terz = []
-            cols_in_db = ["time"]
-            for k in terzfrequenzen:
-                available_cols_terz.append(terz_prefix + k)
-                cols_in_db.append("hz" + k)
+            try:
+                terz_prefix = "LZeq"
+                available_cols_terz = []
+                cols_terz = []
+                values_terz = []
+                cols_in_db = ["time"]
+                for k in terzfrequenzen:
+                    available_cols_terz.append(terz_prefix + k)
+                    cols_in_db.append("hz" + k)
+                    
+                t_arr = [f"""T{messpunkt.Id}"""]  # "T2", "T3", "T4", "T5", "T6"]
+                for i in available_cols_terz:
+                    for j in t_arr:
+                        cols_terz.append(f"{j}_{i}")
+                terz_df = pd.read_sql(
+                f"select {','.join(cols_in_db)} from \"tsdb_terz\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME", self.dbConnection)
+
+
+
+                terz_df.rename(columns={"hz20": f"T{messpunkt.Id}_LZeq20", "hz25": f"T{messpunkt.Id}_LZeq25", "hz31_5": f"T{messpunkt.Id}_LZeq31_5", "hz40": f"T{messpunkt.Id}_LZeq40", "hz50": f"T{messpunkt.Id}_LZeq50", "hz63": f"T{messpunkt.Id}_LZeq63", "hz80": f"T{messpunkt.Id}_LZeq80", "hz100": f"T{messpunkt.Id}_LZeq100", "hz125": f"T{messpunkt.Id}_LZeq125", "hz160": f"T{messpunkt.Id}_LZeq160",
+                                        "hz200": f"T{messpunkt.Id}_LZeq200", "hz250": f"T{messpunkt.Id}_LZeq250", "hz315": f"T{messpunkt.Id}_LZeq315", "hz400": f"T{messpunkt.Id}_LZeq400", "hz500": f"T{messpunkt.Id}_LZeq500", "hz630": f"T{messpunkt.Id}_LZeq630", "hz800": f"T{messpunkt.Id}_LZeq800", "hz1000": f"T{messpunkt.Id}_LZeq1000", "hz1250": f"T{messpunkt.Id}_LZeq1250", "hz1600": f"T{messpunkt.Id}_LZeq1600",
+                                        "hz2000": f"T{messpunkt.Id}_LZeq2000", "hz2500": f"T{messpunkt.Id}_LZeq2500", "hz3150": f"T{messpunkt.Id}_LZeq3150", "hz4000": f"T{messpunkt.Id}_LZeq4000", "hz5000": f"T{messpunkt.Id}_LZeq5000", "hz6300": f"T{messpunkt.Id}_LZeq6300", "hz8000": f"T{messpunkt.Id}_LZeq8000", "hz10000": f"T{messpunkt.Id}_LZeq10000", "hz12500": f"T{messpunkt.Id}_LZeq12500", "hz16000": f"T{messpunkt.Id}_LZeq16000",
+                                        "hz20000": f"T{messpunkt.Id}_LZeq20000", "time": "Timestamp"}, inplace=True)
                 
-            t_arr = [f"""T{messpunkt.Id}"""]  # "T2", "T3", "T4", "T5", "T6"]
-            for i in available_cols_terz:
-                for j in t_arr:
-                    cols_terz.append(f"{j}_{i}")
-            terz_df = pd.read_sql(
-            f"select {','.join(cols_in_db)} from \"tsdb_terz\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME", self.dbConnection)
+                # print(terz_df)
+                terz_df['Timestamp'] = terz_df['Timestamp'].dt.tz_convert('Europe/Berlin')
+                terz_df['Timestamp'] = terz_df['Timestamp'].dt.tz_localize(None)
+                # cet = pytz.timezone('CET').utcoffset()
+                # resu_df['Timestamp'] = resu_df['Timestamp'] + cet
 
+                terz_df.set_index("Timestamp", inplace=True)
+                return terz_df
+            except Exception as e:
+                logging.warning(f"MP {messpunkt.id_in_db} at {from_date.astimezone()} failed")
+                logging.warning(e)
+                raise e
 
-
-            terz_df.rename(columns={"hz20": f"T{messpunkt.Id}_LZeq20", "hz25": f"T{messpunkt.Id}_LZeq25", "hz31_5": f"T{messpunkt.Id}_LZeq31_5", "hz40": f"T{messpunkt.Id}_LZeq40", "hz50": f"T{messpunkt.Id}_LZeq50", "hz63": f"T{messpunkt.Id}_LZeq63", "hz80": f"T{messpunkt.Id}_LZeq80", "hz100": f"T{messpunkt.Id}_LZeq100", "hz125": f"T{messpunkt.Id}_LZeq125", "hz160": f"T{messpunkt.Id}_LZeq160",
-                                    "hz200": f"T{messpunkt.Id}_LZeq200", "hz250": f"T{messpunkt.Id}_LZeq250", "hz315": f"T{messpunkt.Id}_LZeq315", "hz400": f"T{messpunkt.Id}_LZeq400", "hz500": f"T{messpunkt.Id}_LZeq500", "hz630": f"T{messpunkt.Id}_LZeq630", "hz800": f"T{messpunkt.Id}_LZeq800", "hz1000": f"T{messpunkt.Id}_LZeq1000", "hz1250": f"T{messpunkt.Id}_LZeq1250", "hz1600": f"T{messpunkt.Id}_LZeq1600",
-                                    "hz2000": f"T{messpunkt.Id}_LZeq2000", "hz2500": f"T{messpunkt.Id}_LZeq2500", "hz3150": f"T{messpunkt.Id}_LZeq3150", "hz4000": f"T{messpunkt.Id}_LZeq4000", "hz5000": f"T{messpunkt.Id}_LZeq5000", "hz6300": f"T{messpunkt.Id}_LZeq6300", "hz8000": f"T{messpunkt.Id}_LZeq8000", "hz10000": f"T{messpunkt.Id}_LZeq10000", "hz12500": f"T{messpunkt.Id}_LZeq12500", "hz16000": f"T{messpunkt.Id}_LZeq16000",
-                                    "hz20000": f"T{messpunkt.Id}_LZeq20000", "time": "Timestamp"}, inplace=True)
-            
-            # print(terz_df)
-            terz_df['Timestamp'] = terz_df['Timestamp'].dt.tz_convert('Europe/Berlin')
-            terz_df['Timestamp'] = terz_df['Timestamp'].dt.tz_localize(None)
-            # cet = pytz.timezone('CET').utcoffset()
-            # resu_df['Timestamp'] = resu_df['Timestamp'] + cet
-
-            terz_df.set_index("Timestamp", inplace=True)
-            return terz_df
 
 
 

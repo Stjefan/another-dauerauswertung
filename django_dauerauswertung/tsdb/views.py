@@ -2,6 +2,10 @@ from django.shortcuts import render
 
 from rest_framework import viewsets
 from rest_framework import serializers
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 from .models import (Ausbreitstungsfaktor, EvaluationMesspunkt, Immissionsort, Messpunkt,
 Detection, Rejection,
 LrPegel, SchallleistungPegel, MaxPegel, Detected, Rejected, 
@@ -13,6 +17,8 @@ from rest_framework.pagination import PageNumberPagination
 from drf_writable_nested.serializers import WritableNestedModelSerializer
 from django.db import transaction
 import logging
+from django.db import connection
+from django.utils.datastructures import MultiValueDictKeyError
 
 logger = logging.getLogger(__name__)
 
@@ -76,12 +82,12 @@ class MessspunktSerializer(serializers.ModelSerializer):
     laermursacheanmesspunkt_set = LaermursacheAnMesspunktSerializer(many=True)
     class Meta:
         model = Messpunkt
-        fields = ["name", "gk_rechts", "gk_hoch", "id", "is_meteo_station", "laermursacheanmesspunkt_set", "id_external", "lwa"]
+        fields = ["name", "gk_rechts", "gk_hoch", "id", "is_meteo_station", "laermursacheanmesspunkt_set", "id_external", "lwa", "utm_x", "utm_y"]
 
 class ImmissionsortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Immissionsort
-        fields = ["name", "grenzwert_tag", "grenzwert_nacht", "gk_rechts", "gk_hoch", "id_external", "id"]
+        fields = ["name", "grenzwert_tag", "grenzwert_nacht", "gk_rechts", "gk_hoch", "id_external", "id", "utm_x", "utm_y"]
 
 class ProjektFilter(FilterSet):
     class Meta:
@@ -125,7 +131,7 @@ class ProjektSerializer(serializers.ModelSerializer):
         RejectionSerializer(r).data for r in Rejection.objects.all()]
     class Meta:
         model = Projekt
-        fields = ["name", "id", "messpunkt_set", "immissionsort_set", "laermursacheanimmissionsorten_set", "ausbreitungsfaktoren_set", "rejections"]
+        fields = ["name", "id", "messpunkt_set", "immissionsort_set", "laermursacheanimmissionsorten_set", "ausbreitungsfaktoren_set", "rejections", "utm_x", "utm_y"]
 
 class LrFilter(FilterSet):
     time = DateTimeFromToRangeFilter()
@@ -263,4 +269,67 @@ class AuswertungslaufViewSet(viewsets.ModelViewSet):
             result = super().create(request)
         logger.info("Insertion finished")
         return result
+
+
+class ListLrPegel(APIView):
+    """
+    View to list lrPegel
+    """
+
+    def get(self, request, format=None):
+        """
+        Return lrPegel at io
+        """
+        try:
+            print(request.GET['time_after'])
+            print(request.GET['time_before'])
+            print(request.GET['immissionsort_id'])
+        except MultiValueDictKeyError as e:
+            print(e)
+        usernames = my_custom_sql()
+        return Response(usernames)
+
+
+class ListMesspunktEvaluation(APIView):
+    """
+    View to list evakuation at mp
+    """
+
+    def get(self, request, format=None):
+        """
+        Return lrPegel at io
+        """
+        try:
+            print(request.GET['time_after'])
+            print(request.GET['time_before'])
+            print(request.GET['messpunkt_id'])
+        except MultiValueDictKeyError as e:
+            print(e)
+        usernames = my_custom_sql()
+        return Response(usernames)
+
+
+def get_auswertung_an_mp():
+    with connection.cursor() as cursor:
+        if True:
+            q3 = """
+            SELECT r.id as id, r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) LEFT JOIN tsdb_rejected rej ON r.time = rej.time;
+            """
+            cursor.execute(q3)
+            return dictfetchall(cursor)
+
+def my_custom_sql():
+    with connection.cursor() as cursor:
+        if True:
+            q3 = "select * FROM (select verursacht_id, json_agg(json_build_object('time', time, 'pegel', pegel) Order by time) AS ts from tsdb_lrpegel lr where time >= '2022-10-27' and time <= '2022-10-28' and immissionsort_id = 6 group by verursacht_id) lr JOIN tsdb_laermursacheanimmissionsorten u ON u.id = lr.verursacht_id;"
+            cursor.execute(q3)
+            return dictfetchall(cursor)
+
+def dictfetchall(cursor):
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
 

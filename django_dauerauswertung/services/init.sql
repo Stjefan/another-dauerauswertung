@@ -69,3 +69,9 @@ SELECT create_hypertable('tsdb_schallleistungpegel', 'time');
 SELECT create_hypertable('tsdb_maxpegel', 'time');
 
 SELECT create_hypertable('tsdb_lrpegel', 'time');
+
+/*
+ALTER TABLE order_details
+  ADD order_date date,
+  ADD quantity integer;
+  */

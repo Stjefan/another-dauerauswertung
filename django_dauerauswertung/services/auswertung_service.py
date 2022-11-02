@@ -161,12 +161,10 @@ def filter_vogel_12_21(mp_id, df):
     return sekunden_ohne_vogeleinfluss
 
 
-def find_vorbeifahrt_mp_5_immendingen(mp: Messpunkt, df) -> list[Vorbeifahrt]:
+def find_vorbeifahrt_mp_5_immendingen(mp: Messpunkt, series) -> list[Vorbeifahrt]:
     mp_id = mp.Id
     vorbeifahrten_container = []
-    df[
-        f"""{mp_id}_{mp.column_lr}"""].rolling(20).apply(
-        lambda j: erkenne_vorbeifahrt(j, vorbeifahrten_container, mp))
+    series.rolling(20).apply(lambda j: erkenne_vorbeifahrt(j, vorbeifahrten_container, mp))
     logging.debug(f"vorbeifahrten_container {vorbeifahrten_container}")
     return vorbeifahrten_container
 
@@ -467,7 +465,7 @@ def berechne_pegel_an_io(from_date, to_date, io: Immissionsort, laerm_nach_ursac
     logging.debug(result_df)
     return result_df
 
-def create_laermursachen_df(all_data_df: pd.DataFrame, mps: list[Messpunkt], from_date: datetime, to_date: datetime):
+def create_laermursachen_df(all_data_df: pd.DataFrame, mps: list[Messpunkt], from_date: datetime, to_date: datetime, detected_set: list[DTO_Detected]):
         cols_laerm = []
         for mp in mps:
             print(mp.Bezeichnung)
@@ -478,8 +476,22 @@ def create_laermursachen_df(all_data_df: pd.DataFrame, mps: list[Messpunkt], fro
             elif len(mp.Ereignisse) == 2:
                 ereignis = [e for e in mp.Ereignisse if "Unkategorisiert" in e][0]
                 ereignis_vorbeifahrt = [e for e in mp.Ereignisse if "Unkategorisiert" not in e][0]
-                s1 = create_rechenwert_column(all_data_df[f"R{mp.Id}_LAFeq"], ereignis)
-                s_ohne_vorbeifahrt, s_mit_vorbeifahrt = foo_immendingen_vorbeifahrt_erkennung(from_date, to_date, s1, ereignis_vorbeifahrt)
+                print(mp.bezeichnung_in_db)
+                vorbeifahrten_list = find_vorbeifahrt_mp_5_immendingen(mp, all_data_df[f"R{mp.Id}_LAFeq"])
+
+                vorbeifahrten_an_mp_indicator_series = \
+                    create_indicator_vorbeifahrt(
+                        all_data_df, vorbeifahrten_list
+                    )
+                s_mit_vorbeifahrt  = create_rechenwert_column(all_data_df[f"R{mp.Id}_LAFeq"], ereignis_vorbeifahrt)
+                s_ohne_vorbeifahrt = create_rechenwert_column(all_data_df[f"R{mp.Id}_LAFeq"], ereignis)
+                s_ohne_vorbeifahrt.loc[
+                    vorbeifahrten_an_mp_indicator_series] = 0
+                s_mit_vorbeifahrt.loc[-vorbeifahrten_an_mp_indicator_series] = 0
+
+                for d in vorbeifahrten_list:
+                    logging.info(f"Vorbeifahrt at {d.beginn}")
+                    detected_set.append(DTO_Detected(d.beginn, int((d.ende-d.beginn).total_seconds()), mp.id_in_db))
 
                 cols_laerm.append(s_ohne_vorbeifahrt)
                 cols_laerm.append(s_mit_vorbeifahrt)
@@ -598,21 +610,7 @@ def filter_and_modify_data(p: Projekt, all_data_df: pd.DataFrame):
                 filter_result_df.loc[aussortiert_by_simple_filter[aussortiert_by_simple_filter].index, :] = [p.filter_mit_ids["LAFeq"]["id"], mp.id_in_db]
                 if "Mannheim" in p.name:
 
-                    if "Zug" in mp.Filter:
-                        logging.info(f"Vor Zugfilter: {len(messwerte_nach_filtern_df)}")
-                        if False:
-                            aussortiert_by_zugfilter = filter_zug(mp.Id, messwerte_nach_filtern_df)
-                            messwerte_nach_filtern_df = messwerte_nach_filtern_df[-aussortiert_by_zugfilter]
-                            print(f"Nach Zugfilter: {len(messwerte_nach_filtern_df)}")
-                            aussortierung_set.append(Aussortiert(aussortiert_by_zugfilter[aussortiert_by_zugfilter], "zug", mp))
-                        if False:
-
-                            detections = filter_zug_v2(mp.Id, messwerte_nach_filtern_df)
-                            for d in detections:
-                                d: Detected
-                                aussortierung_set.append(Aussortiert(messwerte_nach_filtern_df.loc[(messwerte_nach_filtern_df.index >= d.start) & (messwerte_nach_filtern_df.index <= d.end)].index.to_series(), "Zug_V2", mp))
-                                messwerte_nach_filtern_df = messwerte_nach_filtern_df.loc[(messwerte_nach_filtern_df.index < d.start) | (messwerte_nach_filtern_df.index > d.end)]
-                            
+                    
                     if True:
                         detections = filter_zug_v3(mp.Id, messwerte_nach_filtern_df)
                         for d in detections:
@@ -724,7 +722,9 @@ def werte_beurteilungszeitraum_aus(datetime_in_beurteilungszeitraum: datetime, p
         else:
             logging.info("Erstelle Auswertung auf Basis der verwertbaren Messdaten")
 
-            laermursachen_an_messpunkten = create_laermursachen_df(verwertbare_messwerte_df, p.MPs, from_date, to_date)
+            laermursachen_an_messpunkten = create_laermursachen_df(verwertbare_messwerte_df, p.MPs, from_date, to_date, detected_set)
+
+
 
             
 

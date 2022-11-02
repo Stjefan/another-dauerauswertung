@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.urls import path, include
+from django.urls import path, include, re_path
 
 from django.conf.urls.static import static
 
@@ -18,6 +18,8 @@ router.register(r'projekt', views.ProjektViewSet,basename="projekt")
 
 
 
+
 urlpatterns = [
     path('', include(router.urls)),
+    re_path(r'^more-lr', views.ListLrPegel.as_view())
 ]
