@@ -19,6 +19,7 @@ from django.db import transaction
 import logging
 from django.db import connection
 from django.utils.datastructures import MultiValueDictKeyError
+from django.utils.dateparse import parse_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -281,12 +282,12 @@ class ListLrPegel(APIView):
         Return lrPegel at io
         """
         try:
-            print(request.GET['time_after'])
-            print(request.GET['time_before'])
-            print(request.GET['immissionsort_id'])
+            time_after = request.GET['time_after']
+            time_before = request.GET['time_before']
+            immissionsort_id = request.GET['immissionsort']
         except MultiValueDictKeyError as e:
             print(e)
-        usernames = my_custom_sql()
+        usernames = my_custom_sql(time_after, time_before, immissionsort_id)
         return Response(usernames)
 
 
@@ -299,35 +300,58 @@ class ListMesspunktEvaluation(APIView):
         """
         Return lrPegel at io
         """
-        try:
-            print(request.GET['time_after'])
-            print(request.GET['time_before'])
-            print(request.GET['messpunkt_id'])
-        except MultiValueDictKeyError as e:
-            print(e)
-        usernames = my_custom_sql()
+        time_before = request.GET['time_before']
+        time_after = request.GET['time_after']
+        messpunkt_id = (request.GET['messpunkt'])
+        projekt_id = request.GET.get("projekt", 1)
+        usernames = get_auswertung_an_mp(time_before, time_after, messpunkt_id)
         return Response(usernames)
 
+def get_monatsbericht():
+    pass
 
-def get_auswertung_an_mp():
+def get_auswertung_an_mp(time_before, time_after, messpunkt_id, projekt_id = 1):
     with connection.cursor() as cursor:
+        '2022-10-27 00:00:00'
+        '2022-10-27 00:15:00'
         if True:
-            q3 = """
-            SELECT r.id as id, r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id FROM tsdb_resu r LEFT JOIN tsdb_detected d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer)) LEFT JOIN tsdb_rejected rej ON r.time = rej.time;
+            q2 = "SELECT * FROM tsdb_detected d JOIN tsdb_messpunkt m on messpunkt_id = m.id WHERE m.projekt_id = 1 limit 10;"
+            q1 = "SELECT * FROM tsdb_rejected r JOIN tsdb_messpunkt m on messpunkt_id = m.id WHERE m.projekt_id = 1 LIMIT 10"
+            q_4 = f"""SELECT r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id, rej.ursache
+            FROM tsdb_resu r 
+            LEFT JOIN 
+            (SELECT * FROM tsdb_detected d JOIN tsdb_messpunkt m on messpunkt_id = m.id WHERE m.projekt_id = {projekt_id}) d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer))
+            LEFT JOIN 
+            (SELECT time, u.name as ursache, m.name as messpunkt_name FROM tsdb_rejected r JOIN tsdb_messpunkt m ON messpunkt_id = m.id 
+            JOIN tsdb_rejection u ON r.filter_id = u.id WHERE m.projekt_id = {projekt_id}) rej 
+            ON r.time = rej.time 
+            WHERE r.time >= '{time_after}' AND r.time <= '{time_before}' AND r.messpunkt_id = {messpunkt_id};
+
             """
-            cursor.execute(q3)
+
+            print(q_4)
+            cursor.execute(q_4)
             return dictfetchall(cursor)
 
-def my_custom_sql():
+def my_custom_sql(time_after, time_before, immissionsort_id):
     with connection.cursor() as cursor:
         if True:
-            q3 = "select * FROM (select verursacht_id, json_agg(json_build_object('time', time, 'pegel', pegel) Order by time) AS ts from tsdb_lrpegel lr where time >= '2022-10-27' and time <= '2022-10-28' and immissionsort_id = 6 group by verursacht_id) lr JOIN tsdb_laermursacheanimmissionsorten u ON u.id = lr.verursacht_id;"
+            q2 = "select * from tsdb_lrpegel l Join tsdb_laermursacheanimmissionsorten u on l.verursacht_id = u.id where l.time >= '2022-10-26' and l.time <= '2022-10-27';"
+            q4 = """SET TIME ZONE 'Europe/Rome'"""
+            q3 = f"select * FROM (select verursacht_id, json_agg(json_build_object('time', time + interval '0 hour', 'pegel', pegel) Order by time) AS ts from tsdb_lrpegel lr where time >= '{time_after}' and time <= '{time_before}' and immissionsort_id = {immissionsort_id} group by verursacht_id) lr JOIN tsdb_laermursacheanimmissionsorten u ON u.id = lr.verursacht_id;"
+            print(q3)
+            cursor.execute(q4)
             cursor.execute(q3)
-            return dictfetchall(cursor)
+            result_dict =  dictfetchall(cursor)
+            print(result_dict)
+            return result_dict
+
+
 
 def dictfetchall(cursor):
     "Return all rows from a cursor as a dict"
     columns = [col[0] for col in cursor.description]
+
     return [
         dict(zip(columns, row))
         for row in cursor.fetchall()

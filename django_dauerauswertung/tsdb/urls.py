@@ -21,5 +21,6 @@ router.register(r'projekt', views.ProjektViewSet,basename="projekt")
 
 urlpatterns = [
     path('', include(router.urls)),
-    re_path(r'^more-lr', views.ListLrPegel.as_view())
+    re_path(r'^more-lr', views.ListLrPegel.as_view()),
+    re_path(r'^more-mp', views.ListMesspunktEvaluation.as_view())
 ]
