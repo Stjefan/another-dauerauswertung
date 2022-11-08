@@ -211,7 +211,7 @@ class TerzFilter(FilterSet):
         }
 
 class ResuViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Resu.objects.all().order_by('-time')
+    queryset = Resu.objects.all().order_by('time')
     serializer_class = ResuSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ResuFilter
@@ -304,13 +304,13 @@ class ListMesspunktEvaluation(APIView):
         time_after = request.GET['time_after']
         messpunkt_id = (request.GET['messpunkt'])
         projekt_id = request.GET.get("projekt", 1)
-        usernames = get_auswertung_an_mp(time_before, time_after, messpunkt_id)
+        usernames = get_auswertung_an_mp(time_before, time_after, messpunkt_id, projekt_id)
         return Response(usernames)
 
 def get_monatsbericht():
     pass
 
-def get_auswertung_an_mp(time_before, time_after, messpunkt_id, projekt_id = 1):
+def get_auswertung_an_mp(time_before, time_after, messpunkt_id, projekt_id):
     with connection.cursor() as cursor:
         '2022-10-27 00:00:00'
         '2022-10-27 00:15:00'
@@ -325,11 +325,13 @@ def get_auswertung_an_mp(time_before, time_after, messpunkt_id, projekt_id = 1):
             (SELECT time, u.name as ursache, m.name as messpunkt_name FROM tsdb_rejected r JOIN tsdb_messpunkt m ON messpunkt_id = m.id 
             JOIN tsdb_rejection u ON r.filter_id = u.id WHERE m.projekt_id = {projekt_id}) rej 
             ON r.time = rej.time 
-            WHERE r.time >= '{time_after}' AND r.time <= '{time_before}' AND r.messpunkt_id = {messpunkt_id};
+            WHERE r.time >= '{time_after}' AND r.time <= '{time_before}' AND r.messpunkt_id = {messpunkt_id} ORDER by time;
 
             """
+            q_tz = """SET TIME ZONE 'Europe/Rome'"""
 
             print(q_4)
+            cursor.execute(q_tz)
             cursor.execute(q_4)
             return dictfetchall(cursor)
 
