@@ -658,7 +658,7 @@ def get_project_via_rest(name: str) -> Projekt:
 
     mps = [Messpunkt(mp_json['id_external'], Bezeichnung=mp_json['name'], Koordinaten=Koordinaten(mp_json["gk_rechts"], mp_json["gk_hoch"]), id_in_db=mp_json["id"], Ereignisse=[e["name"] for e in mp_json["laermursacheanmesspunkt_set"]] ) for mp_json in projekt_json[idx]['messpunkt_set']]
     has_mete_data = any([mp_json["is_meteo_station"] for mp_json in projekt_json[idx]['messpunkt_set']])
-    ios = [Immissionsort(io_json['id_external'], Bezeichnung=io_json["name"], Koordinaten=Koordinaten(io_json["gk_rechts"], io_json["gk_hoch"]), id_in_db=io_json["id"]) for io_json in projekt_json[idx]['immissionsort_set']]
+    ios = [Immissionsort(io_json['id_external'], Bezeichnung=io_json["name"], Koordinaten=Koordinaten(io_json["gk_rechts"], io_json["gk_hoch"]), id_in_db=io_json["id"], Grenzwert_nacht=io_json["grenzwert_nacht"], Grenzwert_tag=io_json["grenzwert_tag"]) for io_json in projekt_json[idx]['immissionsort_set']]
     for mp in mps:
         mp: Messpunkt
         mp.column_lr = mp.Ereignisse[0]

@@ -2,34 +2,11 @@
 import logging
 from datetime import datetime, timedelta
 import psycopg2
-if True:
-    conn = psycopg2.connect("postgresql://postgres:password@127.0.0.1:5432/tsdb")
-    cursor = conn.cursor()
-    current_time = datetime.now() + timedelta(hours=-44)
 
-    projekt_id = 2
-    q_tz = """SET TIME ZONE 'Europe/Rome'"""
-    if 6 <= current_time.hour <= 21:
-        after_time =   datetime(current_time.year, current_time.month, current_time.day, 6, 0, 0)
-        before_time = after_time+ timedelta(hours=16)
-        
-        q = f"""
-        SELECT immissionsort_id, max(pegel) FROM tsdb_lrpegel lr JOIN tsdb_immissionsort io ON lr.immissionsort_id = io.id AND io.projekt_id = {projekt_id} WHERE time >= '{after_time}' AND time <= '{before_time}' AND lr.pegel >= 0.5*io.grenzwert_tag GROUP BY lr.immissionsort_id;
-        """
-    else:
-        after_time =  datetime(current_time.year, current_time.month, current_time.day, current_time.hour, 0, 0)
-        before_time = after_time+ timedelta(hours=1)
-        q = f"""
-        SELECT immissionsort_id, max(pegel) FROM tsdb_lrpegel lr JOIN tsdb_immissionsort io ON lr.immissionsort_id = io.id AND io.projekt_id = {projekt_id} WHERE time >= '{after_time}' AND time <= '{before_time}' AND lr.pegel >= 0.5*io.grenzwert_nacht GROUP BY lr.immissionsort_id;
-        """
-    cursor.execute(q_tz)
-    results = cursor.execute(q)
-    print(cursor.fetchall())
-    conn.close()
-        
+from auswertung_service import get_project_via_rest
 
 from time import sleep
-
+from constants import get_interval_beurteilungszeitraum_from_datetime, get_id_corresponding_beurteilungszeitraum
 from math import log10
 from datetime import datetime, timedelta
 
@@ -43,7 +20,43 @@ import smtplib
 from email.message import EmailMessage
 from email.utils import formatdate
 from datetime import datetime
-from konfiguration import project_mannheim
+
+
+            
+def check_ueberschreitung(immissionsort_id: int, current_time: datetime, proz_grenzwert: float):
+    conn = psycopg2.connect("postgresql://postgres:password@127.0.0.1:5432/tsdb")
+    cursor = conn.cursor()
+    # current_time = datetime.now() + timedelta(hours=-6)
+
+    
+    q_tz = """SET TIME ZONE 'Europe/Rome'"""
+    
+    if 6 <= current_time.hour <= 21:
+        after_time =   datetime(current_time.year, current_time.month, current_time.day, 6, 0, 0)
+        before_time = after_time+ timedelta(hours=16)
+        grenzwert_column = "grenzwert_tag"
+        
+        
+    else:
+        after_time =  datetime(current_time.year, current_time.month, current_time.day, current_time.hour, 0, 0)
+        before_time = after_time+ timedelta(hours=1)
+        grenzwert_column = "grenzwert_nacht"
+    q = f"""
+            SELECT immissionsort_id, max(pegel) AS LrPegel FROM tsdb_lrpegel lr 
+            JOIN 
+                tsdb_immissionsort io ON lr.immissionsort_id = io.id 
+            WHERE time >= '{after_time}' AND time <= '{before_time}' AND lr.pegel >= 10*log({proz_grenzwert}*power(10, 0.1*io.{grenzwert_column})) AND immissionsort_id = {immissionsort_id} GROUP BY immissionsort_id
+        """
+    logging.info(q)
+    cursor.execute(q_tz)
+    cursor.execute(q)
+    results = cursor.fetchall()
+    print(results)
+    conn.close()
+    if len(results) > 0:
+        return current_time, results[0][1]
+    else:
+        return None, 0
 
 
 addressen_immendingen = ['st.scheible@gmail.com', 'michael.prosch@daimler.com', 'stephan.floren@daimler.com', 'bernhard.lischka@daimler.com', 'ralf.mayer@daimler.com', 'suad.sehic@daimler.com', 'benjamin.stahlmann@daimler.com', 'nathalie.wich@daimler.com', 'joshua.haag@daimler.com', 'stefan.scheible@kurz-fischer.com', 'christian.hettig@kurz-fischer.com']
@@ -62,8 +75,6 @@ def sende_warnmail(
             prozentuale_auslastung = 100*10**(0.1*beurteilungspegel) / 10**(0.1*io.Grenzwert_nacht)
         # logging.info(f"{prozentuale_auslastung}, {beurteilungspegel}, {io.Grenzwert_nacht}")
         fromaddr = "alarm_dauerauswertung_immendingen@kurz-fischer.de"
-        # toaddrs = "stefan.scheible@kurz-fischer.de, st.scheible@gmail.com, michael.prosch@daimler.com, lars.l.heinrich@daimler.com, stephan.floren@daimler.com, bernhard.lischka@daimler.com, ralf.mayer@daimler.com, suad.sehic@daimler.com, benjamin.stahlmann@daimler.com, nathalie.wich@daimler.com, joshua.haag@daimler.com, stefan.scheible@kurz-fischer.de, christian.hettig@kurz-fischer.de"
-        # toaddrs = "stefan.scheible@kurz-fischer.de, st.scheible@gmail.com, michael.prosch@daimler.com, lars.l.heinrich@daimler.com, dorde.milovanovic@daimler.com, stephan.floren@daimler.com, bernhard.lischka@daimler.com, ralf.mayer@daimler.com, suad.sehic@daimler.com, benjamin.stahlmann@daimler.com, nathalie.wich@daimler.com, joshua.haag@daimler.com, stefan.scheible@kurz-fischer.de, christian.hettig@kurz-fischer.de"
         # toaddrs = "stefan.scheible@kurz-fischer.de, st.scheible@gmail.com"
         address_array = addressen_immendingen
         # address_array = addressen_development
@@ -106,41 +117,35 @@ if __name__ == "__main__":
 def create_beurteilungszeitraum_datetime_dict():
     return dict(zip([0,1,2,3,4,5,6,7,8], [datetime(1900, 1,1)]*9))
 
-last_send_mail_dict = dict(zip([io.Id for io in ios], [create_beurteilungszeitraum_datetime_dict() for io in ios]))
-print(last_send_mail_dict)
 
-
-
-if __name__ == '__main__':
+def dauerlauf_ueberschreitungspruefung():
     FORMAT = '%(filename)s %(lineno)d %(asctime)s %(levelname)s %(message)s'
     logging.basicConfig(
-        level=logging.INFO, format=FORMAT, handlers=[logging.FileHandler("../logs/check_ueberschreitung.log"),
+        level=logging.INFO, format=FORMAT, handlers=[
+            #logging.FileHandler("../logs/check_ueberschreitung.log"),
         logging.StreamHandler(sys.stdout)]
     )
-    prozentualer_grenzwert = 0.9
+    prozentualer_grenzwert = 0.8
+    p = get_project_via_rest("immendingen")
+    last_send_mail_dict = dict(zip([io.Id for io in p.IOs], [create_beurteilungszeitraum_datetime_dict() for io in p.IOs]))
+    print(last_send_mail_dict)
     while True:
         try:
-            for io in ios:
-                zu_pruefender_zeitpunkt = datetime.now() - timedelta(minutes=15)
-                if zu_pruefender_zeitpunkt.hour >= 6 and zu_pruefender_zeitpunkt.hour < 22:
-                    zu_pruefender_wert = 10*log10(prozentualer_grenzwert*10**(0.1*io.Grenzwert_tag))
-                else:
-                    zu_pruefender_wert = 10*log10(prozentualer_grenzwert*10**(0.1*io.Grenzwert_nacht))
+            for io in p.IOs:
+                zu_pruefender_zeitpunkt = datetime.now() - timedelta(minutes=15, hours=-6)
+              
                 id_current_beurteilungszeitraum = get_id_corresponding_beurteilungszeitraum(zu_pruefender_zeitpunkt)
                 start_end_gepruefter_beurteilungszeitraum = get_interval_beurteilungszeitraum_from_datetime(zu_pruefender_zeitpunkt)
-                gepruefter_beurteilungszeitraum_start = datetime(zu_pruefender_zeitpunkt.year, zu_pruefender_zeitpunkt.month, zu_pruefender_zeitpunkt.day) + timedelta(seconds=start_end_gepruefter_beurteilungszeitraum[0])
-                gepruefter_beurteilungszeitraum_ende = datetime(zu_pruefender_zeitpunkt.year, zu_pruefender_zeitpunkt.month, zu_pruefender_zeitpunkt.day) + timedelta(seconds=start_end_gepruefter_beurteilungszeitraum[1])
-                logging.info(f"Pruefe: {io.Id} mit {zu_pruefender_wert} in {id_current_beurteilungszeitraum}")
                 try:
-                    ueberschreitungsinfo = query_4_ueberschreitung_lr(io.Id, zu_pruefender_wert, gepruefter_beurteilungszeitraum_start.isoformat() + "Z", gepruefter_beurteilungszeitraum_ende.isoformat() + "Z")
-                    if  ueberschreitungsinfo.pegel > 0:
+                    erste_ueberschreitung, pegel = check_ueberschreitung(io.id_in_db, zu_pruefender_zeitpunkt, prozentualer_grenzwert)
+                    if  pegel > 0:
                         letzte_mail_vor_hinreichend_langer_zeit = (zu_pruefender_zeitpunkt - last_send_mail_dict[io.Id][id_current_beurteilungszeitraum]).total_seconds() >= 23*3600
                         logging.info(letzte_mail_vor_hinreichend_langer_zeit)
                         if letzte_mail_vor_hinreichend_langer_zeit:
                             mail_already_sent = True
                             last_send_mail_dict[io.Id][id_current_beurteilungszeitraum] = datetime.now()
                             logging.info(f"Sending mail for {io.Id}")
-                            sende_warnmail(io, ueberschreitungsinfo.erste_ueberschreitung, ueberschreitungsinfo.pegel)
+                            sende_warnmail(io, erste_ueberschreitung, pegel)
 
                         else:
                             logging.info(f"Es wurde bereit eins Mail wegen {io.Id} versendet")
@@ -155,4 +160,10 @@ if __name__ == '__main__':
         except Exception as ex:
             logging.exception(ex)
             raise ex
+
+
+if __name__ == '__main__':
+    if True:
+        dauerlauf_ueberschreitungspruefung()
+        
 

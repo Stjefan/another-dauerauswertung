@@ -1,5 +1,9 @@
 from datetime import datetime, timedelta
 
+ISOFORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+FORMAT = '%(filename)s %(asctime)s %(message)s'
+
 frequencies = ['hz20', 'hz25', 'hz31_5', 'hz40', 'hz50', 'hz63', 'hz80', 'hz100', 'hz125', 'hz160', 'hz200', 'hz250',
                             'hz315', 'hz400', 'hz500', 'hz630', 'hz800', 'hz1000', 'hz1250', 'hz1600', 'hz2000', 'hz2500', 'hz3150',
                             'hz4000',
