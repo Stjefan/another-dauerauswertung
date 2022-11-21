@@ -1,22 +1,46 @@
-import logging
 from datetime import datetime, timedelta
 import psycopg2
+from calendar import monthrange
 
-
-
-import logging
 import sys
 
 import logging
 import logging.config
 
-from datetime import datetime
 from auswertung_service import get_project_via_rest
 from monatsbericht import Monatsbericht, MonatsuebersichtAnImmissionsort, MonatsuebersichtAnImmissionsortV2
 
 
-def get_auswertung_gesamt(current_time: datetime):
+def get_auswertung_gesamt(current_time: datetime, projekt_id: int):
     m = Monatsbericht()
+    after_time =   datetime(current_time.year, current_time.month, 1, 0, 0, 0)
+    days_in_month = monthrange(after_time.year, after_time.month)[1]
+    before_time = datetime(current_time.year, current_time.month, days_in_month, 0, 0, 0)
+
+    conn = psycopg2.connect("postgresql://postgres:password@127.0.0.1:5432/tsdb")
+    cursor = conn.cursor()
+
+    q_tz = """SET TIME ZONE 'Europe/Rome'"""
+    cursor.execute(q_tz)
+    q_filtered = f"""SELECT count(*) FROM tsdb_rejected rej JOIN tsdb_messpunkt m ON rej.messpunkt_id = m.id WHERE time >= '{after_time}' AND time <= '{before_time}' AND m.projekt_id = {projekt_id} AND rej.filter_id != 4 AND rej.filter_id != 5"""
+
+    cursor.execute(q_filtered)
+    result = cursor.fetchone()
+    m.no_aussortiert_sonstige = result[0]
+
+    q_wetter_filter = f"""SELECT count(*) FROM tsdb_rejected rej JOIN tsdb_messpunkt m ON rej.messpunkt_id = m.id WHERE time >= '{after_time}' AND time <= '{before_time}' AND m.projekt_id = {projekt_id} AND (rej.filter_id = 4 or rej.filter_id = 5)"""
+    cursor.execute(q_wetter_filter)
+    result = cursor.fetchone()
+    m.no_aussortiert_wetter = result[0]
+
+    q_verfuegbare_sekunden = f"""SELECT sum(verwertebare_messwerte) FROM tsdb_auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum >= '{after_time}' AND zeitpunkt_im_beurteilungszeitraum <= '{before_time}' AND zuordnung_id = {projekt_id};"""
+    cursor.execute(q_wetter_filter)
+    result = cursor.fetchone()
+
+    m.no_verwertbare_sekunden = result[0]
+    conn.close()
+    return m
+
 
 def get_auswertung_an_immissionsort(immissionsort_id: int, current_time: datetime):
     conn = psycopg2.connect("postgresql://postgres:password@127.0.0.1:5432/tsdb")
@@ -30,7 +54,8 @@ def get_auswertung_an_immissionsort(immissionsort_id: int, current_time: datetim
     cursor.execute(q_tz)
 
     after_time =   datetime(current_time.year, current_time.month, 1, 0, 0, 0)
-    before_time = datetime(current_time.year, current_time.month, 31, 0, 0, 0)
+    days_in_month = monthrange(after_time.year, after_time.month)[1]
+    before_time = datetime(current_time.year, current_time.month, days_in_month, 0, 0, 0)
 
     q_day = f"""
             SELECT Date, pegel FROM (

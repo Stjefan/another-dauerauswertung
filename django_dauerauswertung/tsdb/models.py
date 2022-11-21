@@ -11,6 +11,8 @@ class Projekt(models.Model):
     utm_x = models.FloatField(default=0.0)
     utm_y = models.FloatField(default=0.0)
 
+    name_monatsbericht_excel = models.CharField(max_length = 200, default="N_A")
+
 
 
 class Messpunkt(models.Model):

@@ -175,12 +175,15 @@ def read_mete_data_v1(project_name: str, from_datetime: datetime, to_datetime: d
         "winddirection": "float",
         "rain": "float"
     })
-    mete_daten = mete_daten.rename(columns={"temperature": "Temperatur", "humidity": "Luftfeuchtigkeit", "windspeed": "MaxWindgeschwindigkeit", "pressure": "Druck", "winddirection": "Windrichtung", "rain": "Regen"})
+    if False:
+        mete_daten = mete_daten.rename(columns={"temperature": "Temperatur", "humidity": "Luftfeuchtigkeit", "windspeed": "MaxWindgeschwindigkeit", "pressure": "Druck", "winddirection": "Windrichtung", "rain": "Regen"})
     
-    mete_daten['Timestamp'] = pd.to_datetime(
+    mete_daten['Date/Time'] = pd.to_datetime(
         mete_daten['time'], infer_datetime_format=True)
-    mete_daten_indexed = mete_daten.set_index("Timestamp")
     mete_daten_indexed.drop(["time"], axis=1, inplace=True)
+    mete_daten['Date/Time'] = mete_daten['Date/Time'].dt.tz_localize(None)
+    mete_daten_indexed = mete_daten.set_index('Date/Time')
+    
 
     return mete_daten_indexed
 

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from messdaten_07_22 import read_resu_data_v1, read_terz_data_v1
 from konfiguration import project_mannheim
 from insert_messdaten import insert_resu, insert_mete, insert_terz
+from auswertung_service import get_project_via_rest
 # Connect to an existing database
 conn = psycopg2.connect("dbname=tsdb user=postgres password=password host=localhost port=5432")
 
@@ -38,23 +39,48 @@ if __name__ == '__main__':
         # logging.FileHandler("long_query.log"),
     logging.StreamHandler(sys.stdout)]
     )
-    month = 7
-    for i in range (0, 31):
-        
-        messpunkt_id = 7
-        from_date = datetime(2022, month, 1, 0, 0, 0) + timedelta(days=i)
-        to_date = datetime(2022, month, 2, 0, 0, 0) + timedelta(days=i)
-        # read_resu_data_v1(from_date, to_date, "Immendingen MP 1")
-        # read_terz_data_v1(datetime(2022, 6, 1, 6, 0, 0), datetime(2022, 6, 1, 22, 0, 0), "Immendingen MP 1")
-        # print(read_mete_data_v1(from_date, to_date))
-        # get_resu_all_mps(project_immendingen.name_in_db, project_immendingen.MPs[0:2] , from_date, to_date)
-        # get_terz_all_mps(project_immendingen.name_in_db,project_immendingen.MPs[0:2], from_date, to_date)
-        
-        if True:
-            df = read_terz_data_v1(from_date, to_date, project_mannheim.name_in_db, project_mannheim.MPs[0])
-            print(df)
-            insert_terz(df, messpunkt_id, True)
-        if True:
-            df = read_resu_data_v1(from_date, to_date, project_mannheim.name_in_db, project_mannheim.MPs[0])
-            print(df)
-            insert_resu(df, messpunkt_id, True)
+    if True:
+        p = get_project_via_rest("mannheim")
+        month = 6
+        for mp in p.MPs:
+            
+            for i in range (0, 31):
+            
+                from_date = datetime(2022, month, 1, 0, 0, 0) + timedelta(days=i)
+                to_date = datetime(2022, month, 2, 0, 0, 0) + timedelta(days=i)
+                # read_resu_data_v1(from_date, to_date, "Immendingen MP 1")
+                # read_terz_data_v1(datetime(2022, 6, 1, 6, 0, 0), datetime(2022, 6, 1, 22, 0, 0), "Immendingen MP 1")
+                # print(read_mete_data_v1(from_date, to_date))
+                # get_resu_all_mps(project_immendingen.name_in_db, project_immendingen.MPs[0:2] , from_date, to_date)
+                # get_terz_all_mps(project_immendingen.name_in_db,project_immendingen.MPs[0:2], from_date, to_date)
+                
+                if True:
+                    df = read_terz_data_v1(from_date, to_date, project_mannheim.name_in_db, project_mannheim.MPs[0])
+                    print(df)
+                    insert_terz(df, mp.id_in_db, True)
+                if True:
+                    df = read_resu_data_v1(from_date, to_date, project_mannheim.name_in_db, project_mannheim.MPs[0])
+                    print(df)
+                    insert_resu(df, mp.id_in_db, True)
+
+    if False:
+        month = 6
+        for i in range (0, 31):
+            
+            messpunkt_id = 7
+            from_date = datetime(2022, month, 1, 0, 0, 0) + timedelta(days=i)
+            to_date = datetime(2022, month, 2, 0, 0, 0) + timedelta(days=i)
+            # read_resu_data_v1(from_date, to_date, "Immendingen MP 1")
+            # read_terz_data_v1(datetime(2022, 6, 1, 6, 0, 0), datetime(2022, 6, 1, 22, 0, 0), "Immendingen MP 1")
+            # print(read_mete_data_v1(from_date, to_date))
+            # get_resu_all_mps(project_immendingen.name_in_db, project_immendingen.MPs[0:2] , from_date, to_date)
+            # get_terz_all_mps(project_immendingen.name_in_db,project_immendingen.MPs[0:2], from_date, to_date)
+            
+            if True:
+                df = read_terz_data_v1(from_date, to_date, project_mannheim.name_in_db, project_mannheim.MPs[0])
+                print(df)
+                insert_terz(df, messpunkt_id, True)
+            if True:
+                df = read_resu_data_v1(from_date, to_date, project_mannheim.name_in_db, project_mannheim.MPs[0])
+                print(df)
+                insert_resu(df, messpunkt_id, True)

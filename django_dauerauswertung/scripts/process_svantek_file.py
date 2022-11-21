@@ -133,7 +133,7 @@ def run():
             mp = Messpunkt.objects.get(id_external=i+1, projekt__name__icontains="immendingen")
             mp.ablage_folder_transmes = checked_folder[i].folder_path
             mp.save()
-    if True:
+    if False:
         mp = Messpunkt.objects.get(id_external=2, projekt__name__icontains="mannheim")
         print(mp.id)
         insert_files_from_folder(mp.id, folders_mannheim[0], "202210")
@@ -141,7 +141,7 @@ def run():
         for i in range(0, 6):
             mp = Messpunkt.objects.get(id_external=i+1, projekt__name__icontains="immendingen")
             print(mp.id)
-            insert_files_from_folder(mp.id, checked_folder[i], "202210")
+            insert_files_from_folder(mp.id, checked_folder[i], "202209")
 
 if False:
     if __name__ == '__main__':

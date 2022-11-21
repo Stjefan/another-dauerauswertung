@@ -16,11 +16,11 @@ if __name__ == "__main__":
         ]
     )
     year = 2022
-    month = 10
+    month = 9
     
     fun_2_run_1 = werte_beurteilungszeitraum_aus
     fun_2_run_2 = insert_auswertung_via_psycopg2
-    projektbezeichnung = "mannheim"
+    projektbezeichnung = "immendingen"
     if True:
         for d in range(1, min(31, monthrange(year, month)[1])+1):
             for h in [0, 1, 2, 3, 4, 5, 21, 22, 23]:
