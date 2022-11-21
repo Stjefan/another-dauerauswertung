@@ -21,6 +21,7 @@ from django.db import connection
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.dateparse import parse_datetime
 
+
 logger = logging.getLogger(__name__)
 
 class SchallleistungPegelSerializer(serializers.ModelSerializer):
@@ -307,7 +308,7 @@ class ListMesspunktEvaluation(APIView):
         usernames = get_auswertung_an_mp(time_before, time_after, messpunkt_id, projekt_id)
         return Response(usernames)
 
-def get_monatsbericht():
+def get_monatsbericht(timepoint_in_month):
     pass
 
 def get_auswertung_an_mp(time_before, time_after, messpunkt_id, projekt_id):
