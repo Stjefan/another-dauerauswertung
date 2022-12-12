@@ -28,6 +28,8 @@ class Messpunkt(models.Model):
     id_external = models.IntegerField(default=0)
     upload_folder_svantek_file = models.CharField(max_length = 200, null=True, blank=True)
     ablage_folder_transmes = models.CharField(max_length = 200, null=True, blank=True)
+
+    seriennummer_messstation = models.CharField(max_length = 200, null=True, blank=True)
     lwa = models.FloatField(default=0.0)
 
 class Immissionsort(models.Model):

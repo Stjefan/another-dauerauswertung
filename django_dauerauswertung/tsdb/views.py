@@ -318,15 +318,15 @@ def get_auswertung_an_mp(time_before, time_after, messpunkt_id, projekt_id):
         if True:
             q2 = "SELECT * FROM tsdb_detected d JOIN tsdb_messpunkt m on messpunkt_id = m.id WHERE m.projekt_id = 1 limit 10;"
             q1 = "SELECT * FROM tsdb_rejected r JOIN tsdb_messpunkt m on messpunkt_id = m.id WHERE m.projekt_id = 1 LIMIT 10"
-            q_4 = f"""SELECT r.time as time, r.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE r.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE r.lafeq END as rejected, r.messpunkt_id as messpunkt_id, rej.ursache
-            FROM tsdb_resu r 
+            q_4 = f"""SELECT res.time as time, res.lafeq as lafeq, CASE WHEN d.time is NULL THEN NULL ELSE res.lafeq END as detected, CASE WHEN rej.time is NULL THEN NULL ELSE res.lafeq END as rejected, res.messpunkt_id as messpunkt_id, rej.ursache
+            FROM (SELECT * FROM tsdb_resu r WHERE r.time >= '{time_after}' AND r.time <= '{time_before}' AND r.messpunkt_id = {messpunkt_id}) res
             LEFT JOIN 
-            (SELECT * FROM tsdb_detected d JOIN tsdb_messpunkt m on messpunkt_id = m.id WHERE m.projekt_id = {projekt_id}) d ON r.time >= d.time AND r.time <= (d.time + (INTERVAL '1 sec' * d.dauer))
+            (SELECT * FROM tsdb_detected d JOIN tsdb_messpunkt m on messpunkt_id = m.id WHERE m.projekt_id = {projekt_id} and d.time >= '{time_after}' AND d.time <= '{time_before}') d ON res.time >= d.time AND res.time <= (d.time + (INTERVAL '1 sec' * d.dauer))
             LEFT JOIN 
-            (SELECT time, u.name as ursache, m.name as messpunkt_name FROM tsdb_rejected r JOIN tsdb_messpunkt m ON messpunkt_id = m.id 
+            (SELECT time, u.name as ursache, m.name as messpunkt_name FROM tsdb_rejected r JOIN tsdb_messpunkt m ON messpunkt_id = m.id AND r.time >= '{time_after}' AND r.time <= '{time_before}'
             JOIN tsdb_rejection u ON r.filter_id = u.id WHERE m.projekt_id = {projekt_id}) rej 
-            ON r.time = rej.time 
-            WHERE r.time >= '{time_after}' AND r.time <= '{time_before}' AND r.messpunkt_id = {messpunkt_id} ORDER by time;
+            ON res.time = rej.time 
+             ORDER by time;
 
             """
             q_tz = """SET TIME ZONE 'Europe/Rome'"""

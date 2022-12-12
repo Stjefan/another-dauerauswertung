@@ -197,11 +197,13 @@ def process_svantek_rt(filepath: str):
     # df_resu["LZFmax"] = None
     df_resu.set_index("Date/Time", inplace=True)
     df_resu.dropna(inplace=True)
+    df_resu.sort_index(inplace=True)
     
     df_terz = df[cols_terz].rename(columns=cols_terz_rename_dict)
     df_terz = df_terz.rename(columns=rename_cols_terz_4_json)
     df_terz.set_index("Date/Time", inplace=True)
     df_terz.dropna(inplace=True)
+    df_terz.sort_index(inplace=True)
 
     return (df_resu, df_terz)
 

@@ -122,6 +122,10 @@ def get_auswertung_an_immissionsort(immissionsort_id: int, current_time: datetim
     return m
     
 
-p = get_project_via_rest("mannheim")
-for io in p.IOs:
-    get_auswertung_an_immissionsort(io.id_in_db, datetime(2022, 10, 3))
+
+if False:
+    p = get_project_via_rest("mannheim")
+    for io in p.IOs:
+        get_auswertung_an_immissionsort(io.id_in_db, datetime(2022, 10, 3))
+
+        

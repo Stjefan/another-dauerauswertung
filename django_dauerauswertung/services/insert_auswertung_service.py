@@ -16,35 +16,35 @@ from constants import get_start_end_beurteilungszeitraum_from_datetime
 
 app_name = "tsdb"
 
-def delete_old_data_via_psycopg2(cursor, id_old_auswertungslauf, from_date, to_date):
+def delete_old_data_via_psycopg2(cursor, ids_old_auswertungslauf, from_date, to_date):
     if True:
-        for tbl in ["lrpegel", "rejected", "detected", "schallleistungpegel", "maxpegel"]:
-            pass
-            q1 = f"""
-                    DELETE FROM {app_name}_{tbl} WHERE berechnet_von_id = {id_old_auswertungslauf};
-                    """
-            #  DELETE FROM {app_name}_{tbl} WHERE time >= '{from_date}' and time <= '{to_date}' and berechnet_von_id = {id_old_auswertungslauf};
-            cursor.execute(q1)
+        for id_old_auswertungslauf in ids_old_auswertungslauf:
+            for tbl in ["lrpegel", "rejected", "detected", "schallleistungpegel", "maxpegel"]:
+                pass
+                q1 = f"""
+                        DELETE FROM {app_name}_{tbl} WHERE berechnet_von_id = {id_old_auswertungslauf};
+                        """
+                #  DELETE FROM {app_name}_{tbl} WHERE time >= '{from_date}' and time <= '{to_date}' and berechnet_von_id = {id_old_auswertungslauf};
+                cursor.execute(q1)
+                print(q1)
+                if False:
+                    q2 = f"SELECT drop_chunks('{app_name}_{tbl}', '{to_date + timedelta(hours=0)}', '{from_date + timedelta(hours=-0)}');"
+                    
+                    print(q2)
+                    cursor.execute(q2)
+            q1 = f"""DELETE FROM {app_name}_Auswertungslauf WHERE id = {id_old_auswertungslauf}"""
             print(q1)
-            if False:
-                q2 = f"SELECT drop_chunks('{app_name}_{tbl}', '{to_date + timedelta(hours=0)}', '{from_date + timedelta(hours=-0)}');"
-                
-                print(q2)
-                cursor.execute(q2)
-        q1 = f"""DELETE FROM {app_name}_Auswertungslauf WHERE id = {id_old_auswertungslauf}"""
-        print(q1)
-    # SELECT set_chunk_time_interval('tsdb_lrpegel', INTERVAL '1 hours');
-    cursor.execute(q1)
+            cursor.execute(q1)
     
 
 def get_id_old_auswertungslauf(cursor, zuordnung, from_date, to_date):
     q = f"""SELECT id FROM {app_name}_Auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum  >= '{from_date.astimezone()}' and zeitpunkt_im_beurteilungszeitraum <= '{to_date.astimezone()}' and zuordnung_id = {zuordnung}"""
     cursor.execute(q)
     
-    result = cursor.fetchone()
+    result = cursor.fetchall()
 
     print(result)
-    return result[0] if result else 0
+    return [r[0] for r in result] if len(result) > 0 else [0]
 
 def insert_new_auswertungslauf(cursor, from_date, to_date, ergebnis: Ergebnisse):
 

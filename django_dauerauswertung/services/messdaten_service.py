@@ -86,8 +86,9 @@ if True:
                 for i in available_cols_terz:
                     for j in t_arr:
                         cols_terz.append(f"{j}_{i}")
-                terz_df = pd.read_sql(
-                f"select {','.join(cols_in_db)} from \"tsdb_terz\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME", self.dbConnection)
+                q = f"select {','.join(cols_in_db)} from \"tsdb_terz\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME"
+                logging.info(q)
+                terz_df = pd.read_sql(q, self.dbConnection)
 
 
 

@@ -8,8 +8,8 @@ import numpy as np
 
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from datetime import datetime, timedelta
-from messdaten_07_22 import read_resu_data_v1, read_terz_data_v1
-from konfiguration import project_mannheim
+from messdaten_07_22 import read_resu_data_v1, read_terz_data_v1, read_mete_data_v1
+from konfiguration import project_mannheim, project_immendingen
 from insert_messdaten import insert_resu, insert_mete, insert_terz
 from auswertung_service import get_project_via_rest
 # Connect to an existing database
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         # logging.FileHandler("long_query.log"),
     logging.StreamHandler(sys.stdout)]
     )
-    if True:
+    if False:
         p = get_project_via_rest("mannheim")
         month = 6
         for mp in p.MPs:
@@ -63,24 +63,32 @@ if __name__ == '__main__':
                     print(df)
                     insert_resu(df, mp.id_in_db, True)
 
-    if False:
-        month = 6
-        for i in range (0, 31):
+    if True:
+        month = 7
+        for i in range (1, 31):
+            try:
+                messpunkt_id = 7
+                from_date = datetime(2022, month, 1, 0, 0, 0) + timedelta(days=i)
+                to_date = datetime(2022, month, 2, 0, 0, 0) + timedelta(days=i)
+                # read_resu_data_v1(from_date, to_date, "Immendingen MP 1")
+                # read_terz_data_v1(datetime(2022, 6, 1, 6, 0, 0), datetime(2022, 6, 1, 22, 0, 0), "Immendingen MP 1")
+                # print(read_mete_data_v1(from_date, to_date))
+                # get_resu_all_mps(project_immendingen.name_in_db, project_immendingen.MPs[0:2] , from_date, to_date)
+                # get_terz_all_mps(project_immendingen.name_in_db,project_immendingen.MPs[0:2], from_date, to_date)
+                for mp in project_immendingen.MPs:
+                    messpunkt_id = mp.Id
+                    if True:
+                        df = read_terz_data_v1(from_date, to_date, project_immendingen.name_in_db, mp)
+                        print(df)
+                        insert_terz(df, messpunkt_id, True)
+                    if True:
+                        df = read_resu_data_v1(from_date, to_date, project_immendingen.name_in_db, mp)
+                        print(df)
+                        insert_resu(df, messpunkt_id, True)
+                    if True:
+                        if mp.Id == 2:
+                            df = read_mete_data_v1( project_immendingen.name_in_db, from_date, to_date)
+                            insert_mete(df, messpunkt_id, True)
+            except Exception as ex:
+                logging.exception(ex)
             
-            messpunkt_id = 7
-            from_date = datetime(2022, month, 1, 0, 0, 0) + timedelta(days=i)
-            to_date = datetime(2022, month, 2, 0, 0, 0) + timedelta(days=i)
-            # read_resu_data_v1(from_date, to_date, "Immendingen MP 1")
-            # read_terz_data_v1(datetime(2022, 6, 1, 6, 0, 0), datetime(2022, 6, 1, 22, 0, 0), "Immendingen MP 1")
-            # print(read_mete_data_v1(from_date, to_date))
-            # get_resu_all_mps(project_immendingen.name_in_db, project_immendingen.MPs[0:2] , from_date, to_date)
-            # get_terz_all_mps(project_immendingen.name_in_db,project_immendingen.MPs[0:2], from_date, to_date)
-            
-            if True:
-                df = read_terz_data_v1(from_date, to_date, project_mannheim.name_in_db, project_mannheim.MPs[0])
-                print(df)
-                insert_terz(df, messpunkt_id, True)
-            if True:
-                df = read_resu_data_v1(from_date, to_date, project_mannheim.name_in_db, project_mannheim.MPs[0])
-                print(df)
-                insert_resu(df, messpunkt_id, True)

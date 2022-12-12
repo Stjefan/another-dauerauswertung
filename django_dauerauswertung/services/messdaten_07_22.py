@@ -180,7 +180,7 @@ def read_mete_data_v1(project_name: str, from_datetime: datetime, to_datetime: d
     
     mete_daten['Date/Time'] = pd.to_datetime(
         mete_daten['time'], infer_datetime_format=True)
-    mete_daten_indexed.drop(["time"], axis=1, inplace=True)
+    mete_daten.drop(["time"], axis=1, inplace=True)
     mete_daten['Date/Time'] = mete_daten['Date/Time'].dt.tz_localize(None)
     mete_daten_indexed = mete_daten.set_index('Date/Time')
     

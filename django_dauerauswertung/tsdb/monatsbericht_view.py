@@ -126,12 +126,12 @@ def read_data_monatsbericht(cursor, month: int, year:int, projekt_name: str):
     q_filtered = f"""SELECT count(*) FROM tsdb_rejected rej JOIN tsdb_messpunkt m ON rej.messpunkt_id = m.id WHERE time >= '{after_time}' AND time <= '{before_time}' AND m.projekt_id = {projekt_id}"""
 
 
-    q_wetter_filter = f"""SELECT count(*) FROM tsdb_rejected rej JOIN tsdb_messpunkt m ON rej.messpunkt_id = m.id WHERE time >= '{after_time}' AND time <= '{before_time}' AND m.projekt_id = {projekt_id} AND (rej.filter_id = 4 or rej.filter_id = 5)"""
-    q_sonstige_filter = f"""SELECT count(*) FROM tsdb_rejected rej JOIN tsdb_messpunkt m ON rej.messpunkt_id = m.id WHERE time >= '{after_time}' AND time <= '{before_time}' AND m.projekt_id ={projekt_id} AND rej.filter_id != 4 and rej.filter_id != 5"""
+    q_wetter_filter = f"""SELECT count(*) FROM tsdb_rejected rej JOIN tsdb_messpunkt m ON rej.messpunkt_id = m.id WHERE time >= '{after_time}' AND time <= '{before_time}' AND m.projekt_id = {projekt_id} AND (rej.filter_id = 5 or rej.filter_id = 6)"""
+    q_sonstige_filter = f"""SELECT count(*) FROM tsdb_rejected rej JOIN tsdb_messpunkt m ON rej.messpunkt_id = m.id WHERE time >= '{after_time}' AND time <= '{before_time}' AND m.projekt_id ={projekt_id} AND rej.filter_id != 5 and rej.filter_id != 6"""
 
     q_schalllesitungspegel = f"""SELECT count(*) FROM tsdb_rejected rej JOIN tsdb_messpunkt m ON rej.messpunkt_id = m.id WHERE time >= '{after_time}' AND time <= '{before_time}' AND m.projekt_id = 1"""
 
-    q_verfuegbare_sekunden = f"""SELECT sum(verwertebare_messwerte) FROM tsdb_auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum >= '{after_time}' AND zeitpunkt_im_beurteilungszeitraum <= '{before_time}' AND zuordnung_id = {projekt_id};"""
+    q_verfuegbare_sekunden = f"""SELECT sum(verhandene_messwerte) FROM tsdb_auswertungslauf WHERE zeitpunkt_im_beurteilungszeitraum >= '{after_time}' AND zeitpunkt_im_beurteilungszeitraum <= '{before_time}' AND zuordnung_id = {projekt_id};"""
 
     q_schallleistungpegel = f"""SELECT * FROM tsdb_schallleistungpegel WHERE time >= '{after_time}' AND time <= '{before_time}' AND messpunkt_id = 4;"""
 
@@ -141,6 +141,7 @@ def read_data_monatsbericht(cursor, month: int, year:int, projekt_name: str):
     cursor.execute(q_tz)
     # print(q_verfuegbare_sekunden)
     cursor.execute(q_verfuegbare_sekunden)
+    print(q_verfuegbare_sekunden)
     verfuegbare_sekunden = cursor.fetchall()[0][0]
     print(verfuegbare_sekunden)
 
@@ -160,6 +161,7 @@ def read_data_monatsbericht(cursor, month: int, year:int, projekt_name: str):
     # print(q_wetter_filter)
     cursor.execute(q_wetter_filter)
     aussortierte_sekunden_wetter = cursor.fetchall()[0][0]
+    print("Mete-Filter", q_wetter_filter)
     print(aussortierte_sekunden_wetter)
 
 
@@ -201,8 +203,8 @@ def read_data_monatsbericht(cursor, month: int, year:int, projekt_name: str):
     """
 
         q_night = f"""
-        SELECT  extract('day' from T1.time), T1.pegel, argMax FROM (
-            SELECT time::date AS time, date_part( 'hour', time) AS argMax, max(pegel) AS pegel FROM tsdb_lrpegel lr WHERE time >= '{after_time}' AND time <= '{before_time}' AND time::time <= '06:00' AND immissionsort_id = {immissionsort_id} GROUP BY time::date, date_part('hour', time)) T1
+        SELECT extract('day' from T1.time), T1.pegel, extract('hour' from T2.time) FROM 
+            (SELECT time::date AS time, max(pegel) AS pegel FROM tsdb_lrpegel lr WHERE time >= '{after_time}' AND time <= '{before_time}' AND (time::time <= '06:00' OR time::time >= '22:00') AND immissionsort_id = {immissionsort_id} GROUP BY time::date) T1
         JOIN tsdb_lrpegel T2 On T1.time = T2.time::date and T1.pegel = T2.pegel AND T2.immissionsort_id = {immissionsort_id};
         """
 
@@ -239,5 +241,4 @@ def read_data_monatsbericht(cursor, month: int, year:int, projekt_name: str):
         details_io[io.id] = details
 
     return m
-
 

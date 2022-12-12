@@ -18,8 +18,8 @@ from tsdb.helpers import Monatsbericht, MonatsuebersichtAnImmissionsortV2
 
 kufi_fußzeile_thumbnail = "ressources/kufi_fußzeile_thumbnail.jpg"
 kufi_logo_thumbnail = "ressources/kf_logo_thumbnail.jpg"
-kufi_fußzeile_thumbnail = "C:/Users/sts/Documents/GitHub/another-dauerauswertung/django_dauerauswertung/static/ressources/kufi_fußzeile_thumbnail.jpg"
-kufi_logo_thumbnail = "C:/Users/sts/Documents/GitHub/another-dauerauswertung/django_dauerauswertung/static/ressources/kf_logo_thumbnail.jpg"
+kufi_fußzeile_thumbnail = "C:/Users/sts/Documents/GitHub/another-dauerauswertung/django_dauerauswertung/tsdb/ressources/kufi_fußzeile_thumbnail.jpg"
+kufi_logo_thumbnail = "C:/Users/sts/Documents/GitHub/another-dauerauswertung/django_dauerauswertung/tsdb/ressources/kf_logo_thumbnail.jpg"
 
 gray = "#808080"
 dark_gray = "#A9A9A9"
@@ -37,8 +37,8 @@ def erstelle_xslx_monatsbericht(data: Monatsbericht, output: BytesIO(), schallle
     worksheet = workbook.add_worksheet(my_sheetname)
 
 
-    worksheet.set_header('&C&G&R\n\n\nSeite &P von &N', {"image_center": os.path.join(os.path.dirname(__file__), kufi_logo_thumbnail), 'margin': 0.5})
-    worksheet.set_footer('&L&F&C&G&RDatum: &D', {"image_center": os.path.join(os.path.dirname(__file__), kufi_fußzeile_thumbnail), 'margin': 0.6 / 2.54})
+    worksheet.set_header('&C&G&R\n\n\nSeite &P von &N', {"image_center": kufi_logo_thumbnail, 'margin': 0.5})
+    worksheet.set_footer('&L&F&C&G&RDatum: &D', {"image_center": kufi_fußzeile_thumbnail, 'margin': 0.6 / 2.54})
 
     create_content_worksheet_uebersicht(workbook, worksheet, data, number_days_in_month, data.monat)
 
@@ -160,6 +160,8 @@ def create_content_worksheet_io_details(wb, worksheet, io_detail_daten: Monatsue
 
     for i in range(0, number_days_in_month):
         try:
+
+            
             curr_excel_ws.ws_cells[(i+3, 1)].content = (first_of_month + dt.timedelta(days=i)).strftime("%A")
             curr_excel_ws.ws_cells[(i + 3, 1)].format.set_font_size(8)
             curr_excel_ws.ws_cells[(i + 3, 2)].content = (first_of_month + dt.timedelta(days=i)).strftime("%d.%m.%Y")
@@ -175,8 +177,6 @@ def create_content_worksheet_io_details(wb, worksheet, io_detail_daten: Monatsue
             curr_excel_ws.ws_cells[(i + 3, 13)].format.set_left(1)
             curr_excel_ws.ws_cells[(i + 3, 13)].format.set_align("center")
             curr_excel_ws.ws_cells[(i + 3, 13)].format.set_font_size(8)
-
-            print(io_detail_daten.lr_max_nacht[i+1])
 
             curr_excel_ws.ws_cells[(i + 3, 3)].content = io_detail_daten.lr_tag[i+1]
             curr_excel_ws.ws_cells[(i + 3, 3)].format.set_num_format('0.0')

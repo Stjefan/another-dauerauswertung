@@ -1,0 +1,3 @@
+SELECT time, count(*) FROM tsdb_resu WHERE time >= '2022-11-01' and time <= '2022-12-01' and messpunkt_id = 1 GROUP BY extract(day from time)
+SELECT extract(day from time), count(*) FROM tsdb_resu WHERE time >= '2022-11-01' and time <= '2022-12-01' and messpunkt_id = 1 GROUP BY extract(day from time)
+SELECT extract(day from zeitpunkt_im_beurteilungszeitraum), count(*), sum(verhandene_messwerte) from tsdb_auswertungslauf where zeitpunkt_im_beurteilungszeitraum >= '2022-11-01' and zeitpunkt_im_beurteilungszeitraum <= '2022-12-01' and zuordnung_id = 1 GROUP BY extract(day from zeitpunkt_im_beurteilungszeitraum) ORDER BY extract(day from zeitpunkt_im_beurteilungszeitraum);
