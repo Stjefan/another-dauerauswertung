@@ -20,7 +20,8 @@ def create_block_csv_resu(messpunkt, from_date, to_date):
     print("Query", q)
     resu_df = pd.read_sql(q, dbConnection)
 
-
+    if resu_df.empty:
+        raise Exception("No data available")
     data_dict = {
         "lafeq": f"LAFeq",
         "lafmax": f"_LAFmax",
@@ -78,7 +79,8 @@ def create_block_csv_terz(messpunkt, from_date, to_date):
     logging.info(q)
     terz_df = pd.read_sql(q, dbConnection)
 
-
+    if terz_df.empty:
+        raise Exception("No data available")
 
     terz_df.rename(columns={**rename_cols, "time": "Date/Time"}, inplace=True)
     
@@ -118,6 +120,9 @@ def create_block_csv_mete(messpunkt, from_date, to_date):
             }
     mete_df = pd.read_sql(f"select time, rain, temperature, windspeed, pressure, humidity, winddirection from \"tsdb_mete\" where messpunkt_id = {messpunkt.id_in_db} and time >= '{from_date.astimezone()}' and time < '{to_date.astimezone()}' ORDER BY TIME", dbConnection)
 
+    if mete_df.empty:
+        raise Exception("No data available")
+
     mete_df.rename(columns=rename_dict, inplace=True)
     mete_df["Mitl. Windgeschwindigkeit"] = mete_df["Max Wind-Geschwindigkeit"]
     mete_df['Date/Time'] = mete_df['Date/Time'].dt.tz_convert('Europe/Berlin')
@@ -130,7 +135,7 @@ def create_block_csv_mete(messpunkt, from_date, to_date):
     mete_df = df_full_interval.join(mete_df, how='left')
     myfile=BytesIO()
 
-    my_csv_mete = mete_df.to_csv(myfile, decimal=",", sep=";", date_format="%d.%m.%Y %H:%M:%S")
+    mete_df.to_csv(myfile, decimal=",", sep=";", date_format="%d.%m.%Y %H:%M:%S")
     return myfile
 
 
@@ -146,25 +151,38 @@ def get_lrpegel_csv(from_date, to_date):
         (SELECT * FROM tsdb_LaermursacheAnImmissionsorten) T2 ON T1.verursacht_id = T2.id and T2.name = 'Gesamt' 
         JOIN tsdb_immissionsort T3 ON T3.id = T1.immissionsort_id AND t3.projekt_id = 1
         """, dbConnection)
-    print(lr_df)
+    if lr_df.empty:
+        raise Exception("No data available")
     #Timestamp;id;Beurteilungspegel;IdImmissionsort
     lr_df.rename(columns={
         "time": "Timestamp",
         "pegel": "Beurteilungspegel",
         "id_external": "IdImmissionsort"
     }, inplace=True)
+
+    lr_df['Timestamp'] = pd.to_datetime(lr_df['Timestamp'], utc=True)
     lr_df["Timestamp"] = lr_df['Timestamp'].dt.tz_convert('Europe/Berlin')
+    
     lr_df['Timestamp'] = lr_df['Timestamp'].dt.tz_localize(None)
+
+    lr_df = lr_df.astype({'IdImmissionsort': 'int32'})
+    lr_df.replace([np.inf, -np.inf], 0, inplace=True)
     lr_df.set_index("Timestamp", inplace=True)
+    lr_df.sort_index(inplace=True)
 
     dti3 = pd.date_range(modified_from_date, to_date, freq="900s", name="Timestamp")
     df_full_interval = pd.DataFrame(index=dti3)
-
-    lr_df = df_full_interval.join(lr_df, how='left')
+    
+    # lr_df = df_full_interval.join(lr_df, how='left')
+    # lr_df = lr_df.reset_index()
     # Bemerkung: Bei fehlenden Daten wird nur eine Reihe hinzugefügt anstatt eine für jede Messreihe
-
+    # Wieder entfernt, da es Probleme für csv macht (int wird als float ausgegeben)
     myfile=BytesIO()
-    lr_df.to_csv(myfile, decimal=",", sep=";", date_format="%d.%m.%Y %H:%M:%S")
+    print(lr_df)
+    d = {'col1': [0, 1, 2, 3], 'col2': pd.Series([2, 3], index=[2, 3])}
+    f = pd.DataFrame(data=d, index=[0, 1, 2, 3])
+    lr_df.to_csv(myfile,decimal=",", sep=";", date_format="%d.%m.%Y %H:%M:%S")
+    myfile.seek(0)
     return myfile
 
 if __name__ == "__main__":

@@ -1,11 +1,14 @@
 
+from calendar import monthrange
 import ftplib
+from io import BytesIO
 import logging
 import socket
 import ssl
 
 from ftplib import FTP, FTP_TLS
 from datetime import datetime, timedelta
+from time import sleep
 
 import requests
 from auswertung_service import get_project_via_rest
@@ -114,33 +117,55 @@ def get_file():
     return open("test.txt", "rb")
 
 
-def push_beurteilungspegel_2_ftp_server():
-    from_date = datetime.now() + timedelta(days=-7)
-    to_date = from_date + timedelta(days=7)
-    fullpath_on_ftp_server = f"""./PIA/KURZ_FISCHER/Immissionspegel/ios_immendingen_rolling_{from_date.strftime("%Y_%m_%d")}_To_{to_date.strftime("%Y_%m_%d")}.csv"""
-    print(fullpath_on_ftp_server)
+def push_beurteilungspegel_2_ftp_server(ftp_tls_daimler, end_date: datetime):
+    try:
+        logging.info("Starting...")
+        to_date = datetime(end_date.year, end_date.month, end_date.day) + timedelta(days=1) # + timedelta(hours=4) #
+        from_date = to_date + timedelta(days=-7) # + timedelta(hours=-3) #
+        filename = f"""ios_immendingen_rolling_{from_date.strftime("%Y_%m_%d")}_To_{end_date.strftime("%Y_%m_%d")}.csv"""
+        fullpath_on_ftp_server = f"""./PIA/KURZ_FISCHER/Immissionspegel/{filename}"""
+        path_for_dev = f"""C:/Users/sts/Documents/Github/another-dauerauswertung/dev/{filename}"""
+        with get_lrpegel_csv(from_date, to_date) as f:
+            if False:
+                with open(path_for_dev, "wb") as fil:
+                    fil.write(f.getbuffer())
+            else:
+
+                ftp_tls_daimler.storbinary(f'STOR {fullpath_on_ftp_server}', f)
+                logging.info("Storing completed")
+                if False:
+                    with open(path_for_dev, "wb") as fil:
+                        fil.write(f.getbuffer())
+        logging.info("Ending...")
+    except Exception as e:
+        logging.exception(e)
     
 
 # push_beurteilungspegel_2_ftp_server()
 
 
 
+def make_dir_recursive(path):
+    path_arr = path.split("/")
 
 
 
-def push_messdaten_2_ftp_server(ftp_tls_daimler, current_hour, mp, messpunkt_name = "Innendstadt", messpunkt_seriennummer = "57044"):
+def push_messdaten_2_ftp_server(ftp_tls_daimler, current_hour, mp, messpunkt_name = "Innendstadt", messpunkt_seriennummer = "57044", debug=False):
+    target_dir = "C:/Users/sts/Documents/Github/another-dauerauswertung/dev/"
     try:
         
         try:
             ftp_tls_daimler.mkd(
-                f"""./PIA/KURZ_FISCHER/Development/{messpunkt_name}/{current_hour.strftime("%Y-%m")}""")
+                f"""./PIA/KURZ_FISCHER/Fixed_ids/{messpunkt_name}/{current_hour.strftime("%Y-%m")}""")
         except ftplib.error_perm as e:
-            print("Assert: Directory existiert schon")
+            logging.info(e)
+            logging.info("Continue...")
         try:
             ftp_tls_daimler.mkd(
                 f"""./PIA/KURZ_FISCHER/Fixed_ids/{messpunkt_name}/{current_hour.strftime("%Y-%m")}/{current_hour.strftime("%d")}""")
         except ftplib.error_perm as e:
-            print("Assert: Directory existiert schon")
+            logging.info(e)
+            logging.info("Continue...")
         for i in range(0, 23):
 
             try:
@@ -149,22 +174,28 @@ def push_messdaten_2_ftp_server(ftp_tls_daimler, current_hour, mp, messpunkt_nam
                 ftp_tls_daimler.mkd(
                     f"""./PIA/KURZ_FISCHER/Fixed_ids/{messpunkt_name}/{current_hour.strftime("%Y-%m")}/{current_hour.strftime("%d")}/{selected_time.strftime("%H")}""")
             except ftplib.error_perm as e:
-                print("Assert: Directory existiert schon")
+                logging.info(e)
+                logging.info("Continue...")
             try:
-                for fun in [create_block_csv_resu, create_block_csv_terz, *((create_block_csv_mete) if mp.Id == 2 else ())]:
+                fun_array = [(create_block_csv_resu, "RESU"), (create_block_csv_terz, "TERZ")]
+                if mp.Id == 2:
+                    fun_array += [(create_block_csv_mete, "METE")]
+                for fun, name in fun_array:
                     with fun(mp, selected_time, selected_time + timedelta(hours=1)) as f:
-                        full_filename_on_server = f"""./PIA/KURZ_FISCHER/Fixed_ids/
-                        {messpunkt_name}/
-                        {current_hour.strftime("%Y-%m")}/
-                        {current_hour.strftime("%d")}/
-                        {selected_time.strftime("%H")}/
-                        {messpunkt_seriennummer}_RESU_{current_hour.strftime("%Y_%m_%d_%H")}.csv"""
-                        print(full_filename_on_server)
-                        # ftp_tls_daimler.storbinary(f'STOR {full_filename_on_server}', f)
+                        full_filename_on_server = f"""./PIA/KURZ_FISCHER/Fixed_ids/{messpunkt_name}/{current_hour.strftime("%Y-%m")}/{current_hour.strftime("%d")}/{selected_time.strftime("%H")}/{messpunkt_seriennummer}_{name}_{selected_time.strftime("%Y_%m_%d_%H")}.csv"""
+                        # print(full_filename_on_server)
+                        if debug:
+                            path_for_dev = f"""C:/Users/sts/Documents/Github/another-dauerauswertung/dev/{messpunkt_name}_{name}_{selected_time.strftime("%Y_%m_%d_%H")}.csv"""
+                            # ftp_tls_daimler.storbinary(f'STOR {full_filename_on_server}', f)
+                            with open(path_for_dev, "wb") as fil:
+                                fil.write(f.getbuffer())
+                        else:
+                            ftp_tls_daimler.storbinary(f'STOR {full_filename_on_server}', f)
             except Exception as e:
                 logging.exception(e)
     except Exception as e:
-        logging.exception(e)    
+        logging.exception(e)
+        raise e    
     
 
 some_date = datetime.now()
@@ -176,7 +207,7 @@ combined = zip(messpunkte_bezeichnung, messpunkte_seriennummer)
 zuordnung_ids_immendingen = [5, 4,6,3,1,2]# ["MP 5", "MP 4", "MP 6", "MP 3", "MP 1", "MP 2"]
 
 
-d = dict(zip(zuordnung_ids_immendingen, combined))
+my_dict = dict(zip(zuordnung_ids_immendingen, combined))
 
 p = get_project_via_rest("immendingen")
 
@@ -185,19 +216,39 @@ myFtps.logLevel = 2
 myFtps.openSession(host, port, user, password)
 
 
-day = datetime(2022, 9, 1)
+
+logging.basicConfig(level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        
+        # logging.FileHandler("debug.log"),
+        logging.StreamHandler()
+    ])
+# push_beurteilungspegel_2_ftp_server(day)
+
+single_day = True
+
+if single_day:
+    
+    selected_day = datetime(2022, 9, 1)
+
+    if True:
+        push_beurteilungspegel_2_ftp_server(myFtps, selected_day)
+    if True:
+        for mp in p.MPs:
+            push_messdaten_2_ftp_server(myFtps, selected_day, mp, my_dict[mp.Id][0], my_dict[mp.Id][1])
+
+else:
+    day = datetime(2022, 9, 1)
+    days_in_month = monthrange(day.year, day.month)[1]
+    for d in range(0, min(100, days_in_month)):
+        selected_day = day + timedelta(days=d)
+
+        if True:
+            push_beurteilungspegel_2_ftp_server(myFtps, selected_day)
+        if True:
+            for mp in p.MPs:
+                push_messdaten_2_ftp_server(myFtps, selected_day, mp, my_dict[mp.Id][0], my_dict[mp.Id][1])
 
 
-current_hour = day
-
-for mp in p.MPs:
-
-    print(mp.id_in_db)
-    print(mp.Id)
-    print(d[mp.Id])
-
-    push_messdaten_2_ftp_server(myFtps, day, mp)
-
-
-print(myFtps.retrlines("LIST"))
 myFtps.closeSession()
